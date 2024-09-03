@@ -9,11 +9,11 @@ const { randomArrayItem } = require('poop-sock')
 const SpotifyWebApi = require('spotify-web-api-node')
 
 var spotifyApi = undefined
-const randomTrackTerms = ["the", "if", "who", "we", "where", "why", "an", "he", "she", "you", "love", "to", "is", "in"]
+const randomTrackTerms = ['the', 'if', 'who', 'we', 'where', 'why', 'an', 'he', 'she', 'you', 'love', 'to', 'is', 'in']
 
 var updateAccessToken = async function() {
     if (spotifyApi === undefined) {
-        console.error("Undefined api when accessing token!")
+        console.error('Undefined api when accessing token!')
         return
     }
     let credentials = await spotifyApi.clientCredentialsGrant()
@@ -23,7 +23,7 @@ var updateAccessToken = async function() {
 
 var start = function() {
     if (spotifyApi !== undefined) {
-        console.error("Tried to regenerate spotify API!")
+        console.error('Tried to regenerate spotify API!')
         return
     }
     spotifyApi = new SpotifyWebApi({
@@ -37,7 +37,7 @@ var getAllTracks = function(searchTerm) {
     let buf = []
     return new Promise((resolve, reject) => {
         if (spotifyApi === undefined || typeof searchTerm !== 'string') {
-            reject(new Error("Invalid state in 'getAllTracks'."))
+            reject(new Error('Invalid state in "getAllTracks".'))
             return
         }
         let callback = function(data) {
@@ -69,11 +69,11 @@ var getTrack = function(track) {
     let count = 0
     return new Promise((resolve, reject) => {
         if (spotifyApi === undefined || typeof track !== 'string') {
-            reject(new Error("Invalid state in 'getTrack'."))
+            reject(new Error('Invalid state in "getTrack".'))
             return
         }
         let callback = function(data) {
-            count + count + 1
+            count = count + 1
             data.body.tracks.items.forEach(x => {
                 let item = {
                     full: `"${x.name}" - ${x.artists[0].name}`,
@@ -117,7 +117,7 @@ var getRandomTrack_subProcess = function() {
                         artist: y.artists[0].name
                     }
                     if (item.name.length > 10) {
-                        let name = item.name.replace(originalSearchTerm, "").trim().split(' ')
+                        let name = item.name.replace(originalSearchTerm, '').trim().split(' ')
                         if (name.length < 1) {
                             resolve(undefined)
                             return
@@ -147,12 +147,10 @@ var getRandomTrack_subProcess = function() {
 
 var getRandomTrack = async function() {
     let track = undefined
-    while (true) {
-        track = await getRandomTrack_subProcess();
-        if (track !== undefined && track.artist !== undefined && track.name.slice(-1).match(/[a-z]/i)) {
-            return track
-        }
+    while (track === undefined || track.artist === undefined || track.name.slice(-1).match(/[a-z]/i) === null) {
+        track = await getRandomTrack_subProcess()
     }
+    return track
 }
 
 module.exports = {

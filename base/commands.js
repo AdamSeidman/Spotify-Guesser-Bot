@@ -9,12 +9,12 @@ const spotify = require('./spotify')
 const Discord = require('discord.js')
 const config = require('../client/config')
 
-const COMMAND_PREFIX = "!"
+const COMMAND_PREFIX = '!'
 
 var getDetails = function(msg) {
     let game = games.getGame(msg.guild.id)
     if (game === undefined) {
-        msg.reply("There is no game in progress!")
+        msg.reply('There is no game in progress!')
     }
     msg.reply(game.currentTrack.full)
 }
@@ -22,7 +22,7 @@ var getDetails = function(msg) {
 var startGame = async function(msg) {
     let game = games.getGame(msg.guild.id)
     if (game !== undefined) {
-        msg.reply("This server already has an active game!")
+        msg.reply('This server already has an active game!')
         return
     }
     let track = await games.createGame(msg)
@@ -59,34 +59,43 @@ var showHistory = function(msg) {
         return `**${index})**  ${el.full} (<@${el.memberId}>)`
     })
     fields.shift()
-    historyEmbed = new Discord.EmbedBuilder()
+    let historyEmbed = new Discord.EmbedBuilder()
         .setColor('#0099FF')
         .setTitle(`Game History for ${msg.guild.name}`)
         .setDescription(`Started with:  ${history.list[0]}\n\n${fields.join('\n')}`)
     msg.reply({embeds: [historyEmbed]})
 }
 
+var shuffleWord = function(msg) {
+    games.shuffle(msg)
+}
+
 const slashCommands = [
     {
         phrase: 'start',
-        data: new Discord.SlashCommandBuilder().setName("start").setDescription("Start new chain!"),
+        data: new Discord.SlashCommandBuilder().setName('start').setDescription('Start new chain!'),
         execute: startGame
     },
     {
         phrase: 'details',
-        data: new Discord.SlashCommandBuilder().setName("details").setDescription("Get most recent song description."),
+        data: new Discord.SlashCommandBuilder().setName('details').setDescription('Get most recent song description.'),
         execute: getDetails
     },
     {
         phrase: 'history',
-        data: new Discord.SlashCommandBuilder().setName("history").setDescription("See history of current game."),
+        data: new Discord.SlashCommandBuilder().setName('history').setDescription('See history of current game.'),
         execute: showHistory
+    },
+    {
+        phrase: 'shuffle',
+        data: new Discord.SlashCommandBuilder().setName('shuffle').setDescription('Shuffle first word of the game.'),
+        execute: shuffleWord
     }
 ]
 
 var registerSlashCommands = function(client) {
     if (client === undefined) {
-        console.error("No client in registerSlashCommands!")
+        console.error('No client in registerSlashCommands!')
         return
     }
 
@@ -103,9 +112,9 @@ var registerSlashCommands = function(client) {
         console.log(`Refreshing ${commands.length} slash commands.`)
         rest.put(Discord.Routes.applicationCommands(config.botId), {body: commands})
     } catch (err) {
-        console.error("Could not deploy slash commands!", err)
+        console.error('Could not deploy slash commands!', err)
     }
-    console.log("Finished reloading slash commands.")
+    console.log('Finished reloading slash commands.')
 }
 
 var handleSlashCommand = function(interaction) {
@@ -120,7 +129,7 @@ var handleSlashCommand = function(interaction) {
     try {
         command.execute(interaction)
     } catch (err) {
-        console.error(`Error executing command interaction!`, err)
+        console.error('Error executing command interaction!', err)
         interaction.reply({content: 'Could not execute command!', ephemeral: true})
     }
 }

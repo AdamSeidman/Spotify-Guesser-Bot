@@ -24,10 +24,11 @@ var createGame = async function(msg) {
     }
     let game = getGame(msg.guild.id)
     if (game !== undefined) {
-        msg.reply("There is already a game going on!")
+        msg.reply('There is already a game going on!')
         return
     }
     let track = await spotify.getRandomTrack()
+
     game = {
         key: `#${msg.guild.id}`,
         guild: msg.guild,
@@ -39,7 +40,7 @@ var createGame = async function(msg) {
         currentTrack: track,
         count: 0,
     }
-    hist = {
+    let hist = {
         key: `#${msg.guild.id}`,
         list: [track.full]
     }
@@ -50,24 +51,28 @@ var createGame = async function(msg) {
 
 var guess = function(msg, track) {
     let game = getGame(msg.guild.id)
-    if (game === undefined) return "Unknown Error!"
+    if (game === undefined) return 'Unknown Error!'
     let ruinedMsg = `<@${msg.member.id}> RUINED IT AT **${game.count}**!!`
     if (game.lastMember.id === msg.member.id) {
         delete map[game.key]
-        return [ruinedMsg, "**No going twice.**"]
+        return [ruinedMsg, '**No going twice.**']
     }
     if (track === undefined || track.artist === undefined) {
         delete map[game.key]
-        return [ruinedMsg, "**Track not recognized.**"]
+        return [ruinedMsg, '**Track not recognized.**']
     }
     let shortName = getShortName(track)
+    if (shortName.split(' ').length <= 1) {
+        delete map[game.key]
+        return [ruinedMsg, '**No single words.**']
+    }
     if (game.usedTracks.includes(shortName)) {
         delete map[game.key]
         return [ruinedMsg, `**No repeats within ${repeatGuesses} tracks.**`]
     }
     if (game.currentTrack.name.length > 0 && getShortName(game.currentTrack).split(' ').slice(-1)[0] !== shortName.split(' ')[0]) {
         delete map[game.key]
-        return [ruinedMsg, "**Wrong word.**"]
+        return [ruinedMsg, '**Wrong word.**']
     }
     game.usedTracks.push( getShortName(track) )
     history[game.key].list.push({
@@ -86,9 +91,20 @@ var getHistory = function(id) {
     return history[`#${id}`]
 }
 
+var shuffle = function(msg) {
+    let game = getGame(msg.guild.id)
+    if (game === undefined || msg.channel === undefined || `${msg.channel.id}` !== `${game.channel.id}`) {
+        msg.reply('There is no game going on.')
+        return
+    }
+    delete map[game.key]
+    createGame(msg)
+}
+
 module.exports = {
     getGame,
     createGame,
     guess,
-    getHistory
+    getHistory,
+    shuffle
 }

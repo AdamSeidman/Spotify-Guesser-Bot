@@ -4,11 +4,28 @@
  * Author: Adam Seidman
  */
 
+const db = require('./db')
 const spotify = require('./spotify')
 
 var map = {}
 var history = {}
 const repeatGuesses = 50
+
+var initGames = async function() {
+    let cachedHistories = await db.getSavedHistories()
+    let cachedGames = await db.getSavedGames()
+    if (cachedHistories === undefined) return
+    Object.keys(cachedHistories).forEach(x => {
+        history[x] = cachedHistories[x]
+    })
+    if (cachedGames !== undefined) {
+        Object.keys(cachedHistories).forEach(x => {
+            if (cachedGames[x] !== undefined) {
+                map[x] = cachedGames[x]
+            }
+        })
+    }
+}
 
 var getGame = function(id) {
     return map[`#${id}`]
@@ -45,10 +62,12 @@ var createGame = async function(msg) {
     }
     map[game.key] = game
     history[hist.key] = hist
+    db.createHistory(hist)
+    db.createGame(game)
     return track
 }
 
-var guess = function(msg, track) {
+var guess = async function(msg, track) {
     let game = getGame(msg.guild.id)
     if (game === undefined) return 'Unknown Error!'
     let ruinedMsg = `<@${msg.member.id}> RUINED IT AT **${game.count}**!!`
@@ -84,6 +103,8 @@ var guess = function(msg, track) {
     game.currentTrack = track
     game.lastMember = msg.member
     game.count = game.count + 1
+    await db.updateGame(game)
+    await db.updateHistory(history[game.key])
 }
 
 var getHistory = function(id) {
@@ -111,6 +132,7 @@ var shuffle = async function(msg) {
 }
 
 module.exports = {
+    initGames,
     getGame,
     createGame,
     guess,

@@ -8,6 +8,7 @@ const config = require('./config')
 const Discord = require('discord.js')
 const spotify = require('../base/spotify')
 const commands = require('../base/commands')
+const game = require('../base/game')
 
 const bot = new Discord.Client({
     intents: config.intents,
@@ -18,6 +19,7 @@ bot.login(config.token)
 bot.on('ready', async () => {
     spotify.start()
     await commands.registerSlashCommands(bot)
+    await game.initGames()
     console.log('Bot Initialized.')
 })
 

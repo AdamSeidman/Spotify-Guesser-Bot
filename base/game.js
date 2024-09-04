@@ -31,8 +31,7 @@ var createGame = async function(msg) {
 
     game = {
         key: `#${msg.guild.id}`,
-        guild: msg.guild,
-        channel: msg.channel,
+        channelId: msg.channel.id,
         lastMember: {
             id: 0
         },
@@ -91,14 +90,24 @@ var getHistory = function(id) {
     return history[`#${id}`]
 }
 
-var shuffle = function(msg) {
+var shuffle = async function(msg) {
     let game = getGame(msg.guild.id)
-    if (game === undefined || msg.channel === undefined || `${msg.channel.id}` !== `${game.channel.id}`) {
+    if (game === undefined || msg.channel === undefined || `${msg.channel.id}` !== `${game.channelId}`) {
         msg.reply('There is no game going on.')
         return
     }
+    else if (game.count > 0) {
+        msg.reply('You cannot shuffle once the chain has started!')
+        return
+    }
     delete map[game.key]
-    createGame(msg)
+    let track = await createGame(msg)
+    if (track === undefined || track.artist === undefined) {
+        msg.reply('Oops, I deleted your game! :(')
+    }
+    else {
+        msg.reply(`New track picked! Start with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
+    }
 }
 
 module.exports = {

@@ -101,54 +101,53 @@ var getTrack = function(track) {
     })
 }
 
-var getRandomTrack_subProcess = function() {
-    let originalSearchTerm = randomArrayItem(randomTrackTerms)
-    return new Promise((resolve, reject) => {
-        spotifyApi.searchTracks(originalSearchTerm).then(x => {
-            let calcOffset = Math.floor(Math.random() * (x.body.tracks.total - x.body.tracks.limit) + 1)
-            spotifyApi.searchTracks(originalSearchTerm, {offset: calcOffset}).then(data => {
-                if (data.body.tracks.items.length < 1) {
-                    resolve(undefined)
-                }
-                data.body.tracks.items.forEach(y => {
-                    let item = {
-                        full: `"${y.name}" - ${y.artists[0].name}`,
-                        name: y.name,
-                        artist: y.artists[0].name
-                    }
-                    if (item.name.length > 10) {
-                        let name = item.name.replace(originalSearchTerm, '').trim().split(' ')
-                        if (name.length < 1) {
-                            resolve(undefined)
-                            return
-                        }
-                        else {
-                            var searchTerm = name[Math.floor(Math.random() * name.length)]
-                            spotifyApi.searchTracks(searchTerm).then(final => {
-                                if (final.body.tracks.limit < 1) {
-                                    resolve(undefined)
-                                    return
-                                }
-                                let song = final.body.tracks.items[0]
-                                resolve({
-                                    full: `"${song.name}" - ${song.artists[0].name}`,
-                                    name: song.name,
-                                    artist: song.artists[0].name
-                                })
-                                return
-                            }, reject)
-                        }
-                    }
-                })
-            }, reject)
-        }, reject)
-    })
-}
-
 var getRandomTrack = async function() {
     let track = undefined
+    let subProcess = function() {
+        let originalSearchTerm = randomArrayItem(randomTrackTerms)
+        return new Promise((resolve, reject) => {
+            spotifyApi.searchTracks(originalSearchTerm).then(x => {
+                let calcOffset = Math.floor(Math.random() * (x.body.tracks.total - x.body.tracks.limit) + 1)
+                spotifyApi.searchTracks(originalSearchTerm, {offset: calcOffset}).then(data => {
+                    if (data.body.tracks.items.length < 1) {
+                        resolve(undefined)
+                    }
+                    data.body.tracks.items.forEach(y => {
+                        let item = {
+                            full: `"${y.name}" - ${y.artists[0].name}`,
+                            name: y.name,
+                            artist: y.artists[0].name
+                        }
+                        if (item.name.length > 10) {
+                            let name = item.name.replace(originalSearchTerm, '').trim().split(' ')
+                            if (name.length < 1) {
+                                resolve(undefined)
+                                return
+                            }
+                            else {
+                                var searchTerm = name[Math.floor(Math.random() * name.length)]
+                                spotifyApi.searchTracks(searchTerm).then(final => {
+                                    if (final.body.tracks.limit < 1) {
+                                        resolve(undefined)
+                                        return
+                                    }
+                                    let song = final.body.tracks.items[0]
+                                    resolve({
+                                        full: `"${song.name}" - ${song.artists[0].name}`,
+                                        name: song.name,
+                                        artist: song.artists[0].name
+                                    })
+                                    return
+                                }, reject)
+                            }
+                        }
+                    })
+                }, reject)
+            }, reject)
+        })
+    }
     while (track === undefined || track.artist === undefined || track.name.slice(-1).match(/[a-z]/i) === null) {
-        track = await getRandomTrack_subProcess()
+        track = await subProcess()
     }
     return track
 }

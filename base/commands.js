@@ -36,7 +36,7 @@ var processMessage = async function(msg) {
         let track = msg.content.substring(msg.content.toLowerCase().indexOf(COMMAND_PREFIX.toLowerCase()) + COMMAND_PREFIX.length).trim()
         if (track === undefined || track.length < 1) return
         track = await spotify.getTrack(track)
-        let res = games.guess(msg, track)
+        let res = await games.guess(msg, track)
         if (res === undefined) {
             msg.react('✅')
             msg.react('🎵')

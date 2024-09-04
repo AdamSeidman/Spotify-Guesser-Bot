@@ -45,13 +45,10 @@ var createGame = async function(msg) {
         return
     }
     let track = await spotify.getRandomTrack()
-
     game = {
         key: `#${msg.guild.id}`,
         channelId: msg.channel.id,
-        lastMember: {
-            id: 0
-        },
+        lastMemberId: 0,
         usedTracks: [getShortName(track)],
         currentTrack: track,
         count: 0,
@@ -67,29 +64,36 @@ var createGame = async function(msg) {
     return track
 }
 
+var closeGame = async function(game, memberId, ruinedReason) {
+    if (game === undefined) return
+    await db.deleteGame(game)
+    await db.makeHistoryPermanent(history[game.key], memberId, ruinedReason)
+    delete map[game.key]
+}
+
 var guess = async function(msg, track) {
     let game = getGame(msg.guild.id)
     if (game === undefined) return 'Unknown Error!'
     let ruinedMsg = `<@${msg.member.id}> RUINED IT AT **${game.count}**!!`
-    if (game.lastMember.id === msg.member.id) {
-        delete map[game.key]
+    if (game.lastMemberId === msg.member.id) {
+        await closeGame(game)
         return [ruinedMsg, '**No going twice.**']
     }
     if (track === undefined || track.artist === undefined) {
-        delete map[game.key]
+        await closeGame(game)
         return [ruinedMsg, '**Track not recognized.**']
     }
     let shortName = getShortName(track)
     if (shortName.split(' ').length <= 1) {
-        delete map[game.key]
+        await closeGame(game)
         return [ruinedMsg, '**No single words.**']
     }
     if (game.usedTracks.includes(shortName)) {
-        delete map[game.key]
+        await closeGame(game)
         return [ruinedMsg, `**No repeats within ${repeatGuesses} tracks.**`]
     }
     if (game.currentTrack.name.length > 0 && getShortName(game.currentTrack).split(' ').slice(-1)[0] !== shortName.split(' ')[0]) {
-        delete map[game.key]
+        await closeGame(game)
         return [ruinedMsg, '**Wrong word.**']
     }
     game.usedTracks.push( getShortName(track) )
@@ -101,7 +105,7 @@ var guess = async function(msg, track) {
         game.usedTracks.shift()
     }
     game.currentTrack = track
-    game.lastMember = msg.member
+    game.lastMemberId = msg.member.id
     game.count = game.count + 1
     await db.updateGame(game)
     await db.updateHistory(history[game.key])

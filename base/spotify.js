@@ -9,7 +9,6 @@ const { randomArrayItem } = require('poop-sock')
 const SpotifyWebApi = require('spotify-web-api-node')
 
 var spotifyApi = undefined
-const randomTrackTerms = ['the', 'if', 'who', 'we', 'where', 'why', 'an', 'he', 'she', 'you', 'love', 'to', 'is', 'in']
 
 var updateAccessToken = async function() {
     if (spotifyApi === undefined) {
@@ -38,30 +37,31 @@ var getAllTracks = function(searchTerm) {
     return new Promise((resolve, reject) => {
         if (spotifyApi === undefined || typeof searchTerm !== 'string') {
             reject(new Error('Invalid state in "getAllTracks".'))
-            return
         }
-        let callback = function(data) {
-            data.body.tracks.items.forEach(x => {
-                let item = {
-                    full: `"${x.name}" - ${x.artists[0].name}`,
-                    name: x.name,
-                    artist: x.artists[0].name
+        else {
+            let callback = function(data) {
+                data.body.tracks.items.forEach(x => {
+                    let item = {
+                        full: `"${x.name}" - ${x.artists[0].name}`,
+                        name: x.name,
+                        artist: x.artists[0].name
+                    }
+                    if ( item.name.toUpperCase().includes(searchTerm.toUpperCase()) && item.full.length > 8 && buf.find(y => {
+                        return y.full.toUpperCase() === item.full.toUpperCase()
+                    }) === undefined ) {
+                        buf.push(item)
+                    }
+                })
+                if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
+                    spotifyApi.searchTracks(searchTerm, {offset:(data.body.tracks.offset + data.body.tracks.limit)})
+                        .then(callback, reject)
                 }
-                if ( item.name.toUpperCase().includes(searchTerm.toUpperCase()) && item.full.length > 8 && buf.find(y => {
-                    return y.full.toUpperCase() === item.full.toUpperCase()
-                }) === undefined ) {
-                    buf.push(item)
+                else {
+                    resolve(buf)
                 }
-            })
-            if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
-                spotifyApi.searchTracks(searchTerm, {offset:(data.body.tracks.offset + data.body.tracks.limit)})
-                    .then(callback, reject)
             }
-            else {
-                resolve(buf)
-            }
+            spotifyApi.searchTracks(searchTerm).then(callback, reject)
         }
-        spotifyApi.searchTracks(searchTerm).then(callback, reject)
     })
 }
 
@@ -73,28 +73,28 @@ var getTrack = function(track) {
             return
         }
         let callback = function(data) {
-            count = count + 1
-            data.body.tracks.items.forEach(x => {
-                let item = {
-                    full: `"${x.name}" - ${x.artists[0].name}`,
-                    name: x.name,
-                    artist: x.artists[0].name
-                }
-                if ( item.name.toUpperCase() === track.toUpperCase() && x.name.length > 0 ) {
-                    resolve(item)
-                    return
-                }
+            count++
+            let res = data.body.tracks.items.find(x => {
+                return x.name.toUpperCase() === track.toUpperCase() && x.name.length > 0
             })
-            if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
-                if (count >= 5) {
-                    resolve(undefined)
-                    return
+            if ( res !== undefined ) {
+                resolve({
+                    full: `"${res.name}" - ${res.artists[0].name}`,
+                    name: res.name,
+                    artist: res.artists[0].name
+                })
+            }
+            else if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
+                if (count >= config.options.maxSearchPages) {
+                    resolve()
                 }
-                spotifyApi.searchTracks(track, {offset:(data.body.tracks.offset + data.body.tracks.limit)})
-                    .then(callback, reject)
+                else {
+                    spotifyApi.searchTracks(track, {offset:(data.body.tracks.offset + data.body.tracks.limit)})
+                        .then(callback, reject)
+                }
             }
             else {
-                resolve(undefined)
+                resolve()
             }
         }
         spotifyApi.searchTracks(track).then(callback, reject)
@@ -104,44 +104,47 @@ var getTrack = function(track) {
 var getRandomTrack = async function() {
     let track = undefined
     let subProcess = function() {
-        let originalSearchTerm = randomArrayItem(randomTrackTerms)
+        let originalSearchTerm = randomArrayItem(config.randomTrackTerms)
         return new Promise((resolve, reject) => {
             spotifyApi.searchTracks(originalSearchTerm).then(x => {
                 let calcOffset = Math.floor(Math.random() * (x.body.tracks.total - x.body.tracks.limit) + 1)
                 spotifyApi.searchTracks(originalSearchTerm, {offset: calcOffset}).then(data => {
                     if (data.body.tracks.items.length < 1) {
-                        resolve(undefined)
+                        resolve()
                     }
-                    data.body.tracks.items.forEach(y => {
-                        let item = {
-                            full: `"${y.name}" - ${y.artists[0].name}`,
-                            name: y.name,
-                            artist: y.artists[0].name
-                        }
-                        if (item.name.length > 10) {
-                            let name = item.name.replace(originalSearchTerm, '').trim().split(' ')
-                            if (name.length < 1) {
-                                resolve(undefined)
-                                return
+                    else {
+                        data.body.tracks.items.find(y => {
+                            let item = {
+                                full: `"${y.name}" - ${y.artists[0].name}`,
+                                name: y.name,
+                                artist: y.artists[0].name
                             }
-                            else {
-                                var searchTerm = name[Math.floor(Math.random() * name.length)]
-                                spotifyApi.searchTracks(searchTerm).then(final => {
-                                    if (final.body.tracks.limit < 1) {
-                                        resolve(undefined)
-                                        return
-                                    }
-                                    let song = final.body.tracks.items[0]
-                                    resolve({
-                                        full: `"${song.name}" - ${song.artists[0].name}`,
-                                        name: song.name,
-                                        artist: song.artists[0].name
-                                    })
-                                    return
-                                }, reject)
+                            if (item.name.length > 10) {
+                                let name = item.name.replace(originalSearchTerm, '').trim().split(' ')
+                                if (name.length < 1) {
+                                    resolve()
+                                    return true
+                                }
+                                else {
+                                    var searchTerm = name[Math.floor(Math.random() * name.length)]
+                                    spotifyApi.searchTracks(searchTerm).then(final => {
+                                        if (final.body.tracks.limit < 1) {
+                                            resolve()
+                                            return true
+                                        }
+                                        let song = final.body.tracks.items[0]
+                                        resolve({
+                                            full: `"${song.name}" - ${song.artists[0].name}`,
+                                            name: song.name,
+                                            artist: song.artists[0].name
+                                        })
+                                        return true
+                                    }, reject)
+                                }
                             }
-                        }
-                    })
+                            return false
+                        })
+                    }
                 }, reject)
             }, reject)
         })

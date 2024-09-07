@@ -9,8 +9,6 @@ const spotify = require('./spotify')
 const Discord = require('discord.js')
 const config = require('../client/config')
 
-const COMMAND_PREFIX = '!'
-
 var getDetails = function(msg) {
     let game = games.getGame(msg.guild.id)
     if (game === undefined) {
@@ -30,10 +28,11 @@ var startGame = async function(msg) {
 }
 
 var processMessage = async function(msg) {
-    if (msg.content.trim().startsWith(COMMAND_PREFIX)) {
+    if (msg.content.trim().startsWith(config.options.defaultCommandPrefix)) {
         let game = games.getGame(msg.guild.id)
         if (game === undefined || game.channelId !== msg.channel.id) return
-        let track = msg.content.substring(msg.content.toLowerCase().indexOf(COMMAND_PREFIX.toLowerCase()) + COMMAND_PREFIX.length).trim()
+        let track = msg.content.substring(msg.content.toLowerCase().indexOf(
+            config.options.defaultCommandPrefix.toLowerCase()) + config.options.defaultCommandPrefix.length).trim()
         if (track === undefined || track.length < 1) return
         track = await spotify.getTrack(track)
         let res = await games.guess(msg, track)
@@ -60,7 +59,7 @@ var showHistory = function(msg) {
     })
     fields.shift()
     let historyEmbed = new Discord.EmbedBuilder()
-        .setColor('#0099FF')
+        .setColor(config.options.embedColor)
         .setTitle(`Game History for ${msg.guild.name}`)
         .setDescription(`Started with:  ${history.list[0]}\n\n${fields.join('\n')}`)
     msg.reply({embeds: [historyEmbed]})

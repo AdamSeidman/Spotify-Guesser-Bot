@@ -1,0 +1,24 @@
+{
+    "token": "ABCDEF",
+    "botId": "123456",
+    "clientSecret": "123abc",
+    "clientId": "456def",
+    "options": {
+        "maxSearchPages": 25,
+        "embedColor": "#0099FF",
+        "defaultCommandPrefix": "!"
+    },
+    "intents": [
+        "Guilds",
+        "GuildVoiceStates",
+        "GuildMessages",
+        "DirectMessages",
+        "MessageContent",
+        "GuildScheduledEvents",
+        "GuildMembers"
+    ],
+    "partials": [
+        1
+    ],
+    "randomTrackTerms": ["the", "if", "who", "we", "where", "why", "an", "he", "she", "you", "love", "to", "is", "in"]
+}

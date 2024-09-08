@@ -9,6 +9,7 @@ const Discord = require('discord.js')
 const spotify = require('../base/spotify')
 const commands = require('../base/commands')
 const game = require('../base/game')
+const reqHandling = require('../base/reqHandling')
 
 const bot = new Discord.Client({
     intents: config.intents,
@@ -25,13 +26,13 @@ bot.on('ready', async () => {
 
 bot.on('messageCreate', async msg => {
     if (!msg.author.bot) {
-        commands.processMessage(msg)
+        reqHandling.enqueueRequest(msg.guild.id, commands.processMessage, msg)
     }
 })
 
 bot.on('interactionCreate', interaction => {
     if (!interaction.isChatInputCommand()) return
-    commands.handleSlashCommand(interaction)
+    reqHandling.enqueueRequest(interaction.guild.id, commands.handleSlashCommand, interaction)
 })
 
 bot.on('error', console.error)

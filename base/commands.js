@@ -14,20 +14,38 @@ var getDetails = function(msg) {
     if (game === undefined) {
         msg.reply('There is no game in progress!')
     }
-    let minutes = Math.floor(game.currentTrack.duration / (1000 * 60))
-    let seconds = Math.round(game.currentTrack.duration / 1000) % 60
+
+    let track = game.currentTrack
+    let trackNum = msg.options.getInteger('track', false)
+    if (trackNum) {
+        let ret = games.getTrack(game.key, trackNum)
+        if (ret) track = ret
+    }
+    if (track === undefined) {
+        msg.reply('Error! Could not find details.')
+        return
+    }
+
+    let minutes = Math.floor(track.duration / (1000 * 60))
+    let seconds = Math.round(track.duration / 1000) % 60
     if ( seconds < 10 ) {
         seconds = `0${seconds}`
     }
     let fields = [
-        {'name': 'Artist', 'value': game.currentTrack.artist },
-        {'name': 'Album', 'value': (game.currentTrack.album || '(Single)')},
-        {'name': 'Duration', 'value': `${minutes}:${seconds}`}
+        {name: 'Artist', value: track.artist },
+        {name: 'Album', value: (track.album || '(Single)')},
+        {name: 'Duration', value: `${minutes}:${seconds}`}
     ]
+    if (track.memberId) {
+        fields.unshift({
+            name: 'Submitted by',
+            value: `<@${track.memberId}>`
+        })
+    }
     let detailsEmbed = new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
-        .setTitle(game.currentTrack.name)
-        .setDescription(game.currentTrack.url)
+        .setTitle(`"${track.name}"`)
+        .setDescription(track.url)
         .addFields(...fields)
     msg.reply({embeds: [detailsEmbed]})
 }

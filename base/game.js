@@ -31,6 +31,13 @@ var getGame = function(id) {
     return map[`#${id}`]
 }
 
+var getTrack = function(gameKey, num) {
+    if (typeof gameKey !== 'string' || typeof num !== 'number') return
+    let hist = history[gameKey]
+    if (hist === undefined || hist.list === undefined) return
+    return hist.list[num]
+}
+
 var getShortName = function(track) {
     return track.name.trim().toLowerCase()
 }
@@ -138,6 +145,7 @@ var shuffle = async function(msg) {
 module.exports = {
     initGames,
     getGame,
+    getTrack,
     createGame,
     guess,
     getHistory,

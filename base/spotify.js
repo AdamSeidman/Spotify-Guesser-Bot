@@ -10,14 +10,24 @@ const SpotifyWebApi = require('spotify-web-api-node')
 
 var spotifyApi = undefined
 
-var updateAccessToken = async function() {
-    if (spotifyApi === undefined) {
-        console.error('Undefined api when accessing token!')
-        return
+var makeTrack = function(rawTrack) {
+    if (rawTrack === undefined || rawTrack.artists === undefined) return
+    return {
+        full: `"${rawTrack.name}" - ${rawTrack.artists[0].name}`,
+        name: rawTrack.name,
+        artist: rawTrack.artists[0].name,
+        duration: rawTrack.duration_ms,
+        id: rawTrack.id,
+        url: rawTrack.external_urls.spotify,
+        album: rawTrack.album.album_type === 'single'? undefined : rawTrack.album.name,
+        releaseDate: rawTrack.album.release_date,
+        popularity: rawTrack.popularity
     }
+}
+
+var setCredentials = async function() {
     let credentials = await spotifyApi.clientCredentialsGrant()
     spotifyApi.setAccessToken(credentials.body.access_token)
-    setTimeout(updateAccessToken, (credentials.body.expires_in * 500))
 }
 
 var start = function() {
@@ -29,7 +39,8 @@ var start = function() {
         clientId: config.clientId,
         clientSecret: config.clientSecret
     })
-    updateAccessToken()
+    setCredentials()
+    setInterval(setCredentials, config.options.credentialUpdateInterval)
 }
 
 var getAllTracks = function(searchTerm) {
@@ -41,11 +52,7 @@ var getAllTracks = function(searchTerm) {
         else {
             let callback = function(data) {
                 data.body.tracks.items.forEach(x => {
-                    let item = {
-                        full: `"${x.name}" - ${x.artists[0].name}`,
-                        name: x.name,
-                        artist: x.artists[0].name
-                    }
+                    let item = makeTrack(x)
                     if ( item.name.toUpperCase().includes(searchTerm.toUpperCase()) && item.full.length > 8 && buf.find(y => {
                         return y.full.toUpperCase() === item.full.toUpperCase()
                     }) === undefined ) {
@@ -78,11 +85,7 @@ var getTrack = function(track) {
                 return x.name.toUpperCase() === track.toUpperCase() && x.name.length > 0
             })
             if ( res !== undefined ) {
-                resolve({
-                    full: `"${res.name}" - ${res.artists[0].name}`,
-                    name: res.name,
-                    artist: res.artists[0].name
-                })
+                resolve(makeTrack(res))
             }
             else if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
                 if (count >= config.options.maxSearchPages) {
@@ -114,11 +117,7 @@ var getRandomTrack = async function() {
                     }
                     else {
                         data.body.tracks.items.find(y => {
-                            let item = {
-                                full: `"${y.name}" - ${y.artists[0].name}`,
-                                name: y.name,
-                                artist: y.artists[0].name
-                            }
+                            let item = makeTrack(y)
                             if (item.name.length > 10) {
                                 let name = item.name.replace(originalSearchTerm, '').trim().split(' ')
                                 if (name.length < 1) {
@@ -132,12 +131,7 @@ var getRandomTrack = async function() {
                                             resolve()
                                             return true
                                         }
-                                        let song = final.body.tracks.items[0]
-                                        resolve({
-                                            full: `"${song.name}" - ${song.artists[0].name}`,
-                                            name: song.name,
-                                            artist: song.artists[0].name
-                                        })
+                                        resolve(makeTrack(final.body.tracks.items[0]))
                                         return true
                                     }, reject)
                                 }

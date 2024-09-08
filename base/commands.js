@@ -14,7 +14,22 @@ var getDetails = function(msg) {
     if (game === undefined) {
         msg.reply('There is no game in progress!')
     }
-    msg.reply(game.currentTrack.full)
+    let minutes = Math.floor(game.currentTrack.duration / (1000 * 60))
+    let seconds = Math.round(game.currentTrack.duration / 1000) % 60
+    if ( seconds < 10 ) {
+        seconds = `0${seconds}`
+    }
+    let fields = [
+        {'name': 'Artist', 'value': game.currentTrack.artist },
+        {'name': 'Album', 'value': (game.currentTrack.album || '(Single)')},
+        {'name': 'Duration', 'value': `${minutes}:${seconds}`}
+    ]
+    let detailsEmbed = new Discord.EmbedBuilder()
+        .setColor(config.options.embedColor)
+        .setTitle(game.currentTrack.name)
+        .setDescription(game.currentTrack.url)
+        .addFields(...fields)
+    msg.reply({embeds: [detailsEmbed]})
 }
 
 var startGame = async function(msg) {
@@ -78,6 +93,7 @@ const slashCommands = [
     {
         phrase: 'details',
         data: new Discord.SlashCommandBuilder().setName('details').setDescription('Get most recent song description.'),
+        //.addIntegerOption(opt => opt.setName('Track').setDescription('Track number to get details of.')), // TODO
         execute: getDetails
     },
     {

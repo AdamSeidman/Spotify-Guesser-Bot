@@ -6,7 +6,8 @@
     "options": {
         "maxSearchPages": 25,
         "embedColor": "#0099FF",
-        "defaultCommandPrefix": "!"
+        "defaultCommandPrefix": "!",
+        "credentialUpdateInterval": 1790000
     },
     "intents": [
         "Guilds",

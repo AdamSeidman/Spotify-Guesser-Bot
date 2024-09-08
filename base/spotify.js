@@ -21,7 +21,8 @@ var makeTrack = function(rawTrack) {
         url: rawTrack.external_urls.spotify,
         album: rawTrack.album.album_type === 'single'? undefined : rawTrack.album.name,
         releaseDate: rawTrack.album.release_date,
-        popularity: rawTrack.popularity
+        popularity: rawTrack.popularity,
+        images: rawTrack.album.images
     }
 }
 

@@ -32,8 +32,8 @@ var getDetails = function(msg) {
         seconds = `0${seconds}`
     }
     let fields = [
-        {name: 'Artist', value: track.artist },
-        {name: 'Album', value: (track.album || '(Single)')},
+        //{name: 'Artist', value: track.artist },
+        {name: 'Album', value: (track.album || '_(Single)_')},
         {name: 'Duration', value: `${minutes}:${seconds}`}
     ]
     if (track.memberId) {
@@ -44,9 +44,12 @@ var getDetails = function(msg) {
     }
     let detailsEmbed = new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
-        .setTitle(`"${track.name}"`)
-        .setDescription(track.url)
+        .setTitle(track.name)
+        .setURL(track.url)
+        .setDescription(`*${track.artist}*`)
         .addFields(...fields)
+        .setThumbnail(track.images[0].url)
+        .setFooter({text: `Released: ${track.releaseDate}`})
     msg.reply({embeds: [detailsEmbed]})
 }
 
@@ -95,6 +98,8 @@ var showHistory = function(msg) {
         .setColor(config.options.embedColor)
         .setTitle(`Current Game History for ${msg.guild.name}`)
         .setDescription(`Started with:  ${history.list[0].full}\n\n${fields.join('\n')}`)
+        .setThumbnail(msg.guild.iconURL())
+        .setTimestamp()
     msg.reply({embeds: [historyEmbed]})
 }
 

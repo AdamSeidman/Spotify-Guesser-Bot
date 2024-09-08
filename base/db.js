@@ -9,7 +9,6 @@ const sqlite3 = require('sqlite3').verbose()
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'
 const savedImmHistoriesTable = 'ImmediateHistories'
-const previousGameListsTable = 'GuildPreviousGameMap'
 const permanentHistoriesTable = 'PermanentHistories'
 
 var open = function() {
@@ -65,35 +64,6 @@ var getSavedHistories = function() {
             else {
                 try {
                     results[row.key] = JSON.parse(row.map)
-                }
-                catch (err) {
-                    close(db)
-                    console.error(err)
-                    reject(new Error('Parse Error.'))
-                    return
-                }
-            }
-        }, () => {
-            close(db)
-            resolve(results)
-        })
-    })
-}
-
-var getPreviousGameLists = function() {
-    return new Promise((resolve, reject) => {
-        let db = open()
-        let results = {}
-        db.each(`SELECT * FROM ${previousGameListsTable}`, (err, row) => {
-            if (err) {
-                close(db)
-                console.error(err)
-                reject(new Error('Select Error.'))
-                return
-            }
-            else {
-                try {
-                    results[row.key] = JSON.parse(row.list)
                 }
                 catch (err) {
                     close(db)
@@ -200,6 +170,7 @@ var storePermanentHistories = function() {
             if (err) {
                 close(db)
                 console.error(err)
+                historiesSetUp = false
                 reject(new Error('Select Error.'))
                 return
             }
@@ -210,6 +181,7 @@ var storePermanentHistories = function() {
                 catch (err) {
                     close(db)
                     console.error(err)
+                    historiesSetUp = false
                     reject(new Error('Parse Error.'))
                     return
                 }
@@ -221,7 +193,21 @@ var storePermanentHistories = function() {
     })
 }
 
-var makeHistoryPermanent = async function(history, memberId, ruinedReason) { // TODO store in GuildPreviousGameMap as well
+var getGuildPreviousGames = async function(guildId) {
+    if (guildId === undefined) return
+    if (!historiesSetUp) {
+        await storePermanentHistories()
+    }
+    let res = []
+    Object.keys(permanentHistories).forEach(x => {
+        if (permanentHistories[x].key === `#${guildId}`) {
+            res.push(permanentHistories[x])
+        }
+    })
+    return res
+}
+
+var makeHistoryPermanent = async function(history, memberId, ruinedReason) {
     if (!historiesSetUp) {
         await storePermanentHistories()
     }
@@ -260,11 +246,11 @@ var makeHistoryPermanent = async function(history, memberId, ruinedReason) { // 
 module.exports = {
     getSavedGames,
     getSavedHistories,
-    getPreviousGameLists,
     createGame,
     createHistory,
     updateGame,
     updateHistory,
     deleteGame,
-    makeHistoryPermanent
+    makeHistoryPermanent,
+    getGuildPreviousGames
 }

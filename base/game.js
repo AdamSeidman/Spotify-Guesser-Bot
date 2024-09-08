@@ -55,7 +55,7 @@ var createGame = async function(msg) {
     }
     let hist = {
         key: `#${msg.guild.id}`,
-        list: [track.full]
+        list: [track]
     }
     map[game.key] = game
     history[hist.key] = hist

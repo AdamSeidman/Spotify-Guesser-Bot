@@ -75,8 +75,8 @@ var showHistory = function(msg) {
     fields.shift()
     let historyEmbed = new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
-        .setTitle(`Game History for ${msg.guild.name}`)
-        .setDescription(`Started with:  ${history.list[0]}\n\n${fields.join('\n')}`)
+        .setTitle(`Current Game History for ${msg.guild.name}`)
+        .setDescription(`Started with:  ${history.list[0].full}\n\n${fields.join('\n')}`)
     msg.reply({embeds: [historyEmbed]})
 }
 
@@ -92,8 +92,8 @@ const slashCommands = [
     },
     {
         phrase: 'details',
-        data: new Discord.SlashCommandBuilder().setName('details').setDescription('Get most recent song description.'),
-        //.addIntegerOption(opt => opt.setName('Track').setDescription('Track number to get details of.')), // TODO
+        data: new Discord.SlashCommandBuilder().setName('details').setDescription('Get most recent song description.')
+            .addIntegerOption(opt => opt.setName('track').setDescription('Track number to get details of.').setMinValue(0).setRequired(false)),
         execute: getDetails
     },
     {
@@ -132,7 +132,7 @@ var registerSlashCommands = function(client) {
     console.log('Finished reloading slash commands.')
 }
 
-var handleSlashCommand = function(interaction) {
+var handleSlashCommand = async function(interaction) {
     const command = interaction.client.commands.get(interaction.commandName)
 
     if (!command) {

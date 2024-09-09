@@ -27,8 +27,13 @@ var makeTrack = function(rawTrack) {
 }
 
 var setCredentials = async function() {
-    let credentials = await spotifyApi.clientCredentialsGrant()
-    spotifyApi.setAccessToken(credentials.body.access_token)
+    try {
+        let credentials = await spotifyApi.clientCredentialsGrant()
+        spotifyApi.setAccessToken(credentials.body.access_token)
+    }
+    catch (err) {
+        console.error('Could not set credentials!', err)
+    }
 }
 
 var start = function() {
@@ -93,7 +98,7 @@ var getTrack = function(track) {
                     resolve()
                 }
                 else {
-                    spotifyApi.searchTracks(track, {offset:(data.body.tracks.offset + data.body.tracks.limit)})
+                    spotifyApi.searchTracks(track, {offset: (data.body.tracks.offset + data.body.tracks.limit)})
                         .then(callback, reject)
                 }
             }
@@ -102,6 +107,37 @@ var getTrack = function(track) {
             }
         }
         spotifyApi.searchTracks(track).then(callback, reject)
+    })
+}
+
+var getTrackByArtist = function(track) {
+    return new Promise((resolve, reject) => {
+        if (typeof track !== 'string' || !track.includes('-')) {
+            resolve()
+        }
+        else if (spotifyApi === undefined) {
+            reject(new Error('Invalid state in "getTrackByArtist".'))
+        }
+        else {
+            let song = track.slice(0, track.lastIndexOf('-')).trim()
+            let artist = track.slice(track.lastIndexOf('-') + 1).trim()
+            let callback = function(data) {
+                let res = data.body.tracks.items.find(x => {
+                    return x.name.toUpperCase() === song.toUpperCase() && x.artists[0].name.toUpperCase() === artist.toUpperCase()
+                })
+                if ( res !== undefined ) {
+                    resolve(makeTrack(res))
+                }
+                else if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
+                    spotifyApi.searchTracks(track, {offset: (data.body.tracks.offset + data.body.tracks.limit)})
+                        .then(callback, reject)
+                }
+                else {
+                    resolve()
+                }
+            }
+            spotifyApi.searchTracks(track).then(callback, reject)
+        }
     })
 }
 
@@ -145,7 +181,13 @@ var getRandomTrack = async function() {
         })
     }
     while (track === undefined || track.artist === undefined || track.name.slice(-1).match(/[a-z]/i) === null) {
-        track = await subProcess()
+        try {
+            track = await subProcess()
+        }
+        catch (err) {
+            track = undefined
+            console.error(err)
+        }
     }
     return track
 }
@@ -154,5 +196,6 @@ module.exports = {
     start,
     getAllTracks,
     getTrack,
+    getTrackByArtist,
     getRandomTrack
 }

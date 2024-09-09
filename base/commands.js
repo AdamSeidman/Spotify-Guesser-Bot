@@ -32,7 +32,6 @@ var getDetails = function(msg) {
         seconds = `0${seconds}`
     }
     let fields = [
-        //{name: 'Artist', value: track.artist },
         {name: 'Album', value: (track.album || '_(Single)_')},
         {name: 'Duration', value: `${minutes}:${seconds}`}
     ]
@@ -70,7 +69,13 @@ var processMessage = async function(msg) {
         let track = msg.content.substring(msg.content.toLowerCase().indexOf(
             config.options.defaultCommandPrefix.toLowerCase()) + config.options.defaultCommandPrefix.length).trim()
         if (track === undefined || track.length < 1) return
-        track = await spotify.getTrack(track)
+        let trackByArtist = await spotify.getTrackByArtist(track)
+        if (trackByArtist === undefined) {
+            track = await spotify.getTrack(track)
+        }
+        else {
+            track = trackByArtist
+        }
         let res = await games.guess(msg, track)
         if (res === undefined) {
             msg.react('✅')

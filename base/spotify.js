@@ -5,7 +5,7 @@
  */
 
 const config = require('../client/config')
-const { randomArrayItem } = require('poop-sock')
+const { randomArrayItem, strip } = require('./helpers')
 const SpotifyWebApi = require('spotify-web-api-node')
 
 var spotifyApi = undefined
@@ -26,14 +26,13 @@ var makeTrack = function(rawTrack) {
     }
 }
 
-var setCredentials = async function() {
-    try {
-        let credentials = await spotifyApi.clientCredentialsGrant()
-        spotifyApi.setAccessToken(credentials.body.access_token)
-    }
-    catch (err) {
-        console.error('Could not set credentials!', err)
-    }
+const setTokens = tokens => {
+    spotifyApi.setAccessToken(tokens['access_token'])
+    spotifyApi.setRefreshToken(tokens['refresh_token'])
+}
+
+const requestTokens = async () => {
+    setTokens((await spotifyApi.clientCredentialsGrant()).body)
 }
 
 var start = function() {
@@ -45,8 +44,9 @@ var start = function() {
         clientId: config.clientId,
         clientSecret: config.clientSecret
     })
-    setCredentials()
-    setInterval(setCredentials, config.options.credentialUpdateInterval)
+
+    requestTokens()
+    setInterval(requestTokens, config.options.credentialUpdateInterval)
 }
 
 var getAllTracks = function(searchTerm) {
@@ -88,7 +88,7 @@ var getTrack = function(track) {
         let callback = function(data) {
             count++
             let res = data.body.tracks.items.find(x => {
-                return x.name.toUpperCase() === track.toUpperCase() && x.name.length > 0
+                return strip(x.name.toUpperCase().trim()) === strip(track.toUpperCase().trim()) && x.name.length > 0
             })
             if ( res !== undefined ) {
                 resolve(makeTrack(res))
@@ -123,7 +123,8 @@ var getTrackByArtist = function(track) {
             let artist = track.slice(track.lastIndexOf('-') + 1).trim()
             let callback = function(data) {
                 let res = data.body.tracks.items.find(x => {
-                    return x.name.toUpperCase() === song.toUpperCase() && x.artists[0].name.toUpperCase() === artist.toUpperCase()
+                    return strip(x.name.toUpperCase().trim()) === strip(song.toUpperCase())
+                        && strip(x.artists[0].name.toUpperCase().trim()) === strip(artist.toUpperCase())
                 })
                 if ( res !== undefined ) {
                     resolve(makeTrack(res))

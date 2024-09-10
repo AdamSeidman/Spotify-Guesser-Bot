@@ -6,6 +6,7 @@
 
 const db = require('./db')
 const spotify = require('./spotify')
+const { strip } = require('./helpers')
 
 var map = {}
 var history = {}
@@ -39,7 +40,7 @@ var getTrack = function(gameKey, num) {
 }
 
 var getShortName = function(track) {
-    return track.name.trim().toLowerCase()
+    return strip(track.name).trim().toLowerCase()
 }
 
 var createGame = async function(msg) {

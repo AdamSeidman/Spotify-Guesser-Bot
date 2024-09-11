@@ -10,11 +10,25 @@ const config = require('../../client/config')
 const { getPercentage } = require('../helpers')
 
 var showUserStats = async function(interaction) {
-    let userId = interaction.member.id // TODO make args possible
+    let user = {
+        id: interaction.member.id,
+        username: interaction.member.user.username,
+        avatar: interaction.member.displayAvatarURL()
+    }
+    let args = interaction.options.getUser('user')
+    if (args !== null) {
+        if (args.bot) {
+            interaction.editReply('Cannot get statistics for a bot!')
+            return
+        }
+        user.id = args.id
+        user.username = args.username
+        user.avatar = args.displayAvatarURL()
+    }
     let globalCorrect = 0, guildCorrect = 0
     let globalIncorrect = 0, guildIncorrect = 0
     let guessBuf = []
-    let guesses = await db.getAllGuesses(userId)
+    let guesses = await db.getAllGuesses(user.id)
     guesses.forEach(guess => {
         if (guess.pass) {
             globalCorrect++
@@ -62,13 +76,18 @@ var showUserStats = async function(interaction) {
     let userStatEmbed = new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle('User Stats')
-        .setAuthor({ name: interaction.member.user.username, iconURL: interaction.member.displayAvatarURL() })
+        .setAuthor({ name: user.username, iconURL: user.avatar })
         .addFields(...fields)
     interaction.editReply({embeds: [userStatEmbed]})
 }
 
+var showGuildStats = async function(interaction) {
+    interaction.editReply('Not implemented! :)')
+}
+
 const subCommands = {
-    user: showUserStats
+    user: showUserStats,
+    server: showGuildStats
 }
 
 module.exports = {
@@ -77,13 +96,18 @@ module.exports = {
         .addSubcommand(subcommand => 
             subcommand
                 .setName('user')
-                .setDescription('Show user statistics')/*
-                .addUserOption(option => {
+                .setDescription('Show user statistics.')
+                .addUserOption(option => 
                     option
-                        .setName('member')
+                        .setName('user')
                         .setDescription('User to get stats of.')
                         .setRequired(false)
-                })*/
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('server')
+                .setDescription('Show server statistics.')
         ),
     execute: async interaction => {
         let sub = interaction.options.getSubcommand()

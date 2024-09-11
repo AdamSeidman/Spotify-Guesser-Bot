@@ -1,5 +1,5 @@
 /**
- * Statistics sub-commands.
+ * Statistics handling and sub-commands.
  * 
  * Author: Adam Seidman
  */

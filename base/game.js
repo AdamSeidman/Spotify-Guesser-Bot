@@ -84,25 +84,30 @@ var guess = async function(msg, track) {
     if (game === undefined) return 'Unknown Error!'
     let ruinedMsg = `<@${msg.member.id}> RUINED IT AT **${game.count}**!!`
     if (game.lastMemberId === msg.member.id) {
-        await closeGame(game)
-        return [ruinedMsg, '**No going twice.**']
+        let ruinedReason = '**No going twice.**'
+        await closeGame(game, msg.member.id, ruinedReason)
+        return [ruinedMsg, ruinedReason]
     }
     if (track === undefined || track.artist === undefined) {
-        await closeGame(game)
-        return [ruinedMsg, '**Track not recognized.**']
+        let ruinedReason = '**Track not recognized.**'
+        await closeGame(game, msg.member.id, ruinedReason)
+        return [ruinedMsg, ruinedReason]
     }
     let shortName = getShortName(track)
     if (shortName.split(' ').length <= 1) {
-        await closeGame(game)
-        return [ruinedMsg, '**No single words.**']
+        let ruinedReason = '**No single words.**'
+        await closeGame(game, msg.member.id, ruinedReason)
+        return [ruinedMsg, ruinedReason]
     }
     if (game.usedTracks.includes(shortName)) {
-        await closeGame(game)
-        return [ruinedMsg, `**No repeats within ${repeatGuesses} tracks.**`]
+        let ruinedReason = `**No repeats within ${repeatGuesses} tracks.**`
+        await closeGame(game, msg.member.id, ruinedReason)
+        return [ruinedMsg, ruinedReason]
     }
     if (game.currentTrack.name.length > 0 && getShortName(game.currentTrack).split(' ').slice(-1)[0] !== shortName.split(' ')[0]) {
-        await closeGame(game)
-        return [ruinedMsg, '**Wrong word.**']
+        let ruinedReason = '**Wrong word.**'
+        await closeGame(game, msg.member.id, ruinedReason)
+        return [ruinedMsg, ruinedReason]
     }
     game.usedTracks.push( getShortName(track) )
     history[game.key].list.push({

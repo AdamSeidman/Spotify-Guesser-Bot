@@ -19,6 +19,8 @@ var startGame = async function(msg) {
 
 module.exports = {
     phrase: 'start',
-    data: new Discord.SlashCommandBuilder().setName('start').setDescription('Start new chain!'),
+    data: new Discord.SlashCommandBuilder()
+        .setName('start')
+        .setDescription('Start new chain!'),
     execute: startGame
 }

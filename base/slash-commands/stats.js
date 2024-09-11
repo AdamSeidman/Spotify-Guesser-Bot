@@ -92,7 +92,9 @@ const subCommands = {
 
 module.exports = {
     phrase: 'stats',
-    data: new Discord.SlashCommandBuilder().setName('stats').setDescription('Show statistics for song chains.')
+    data: new Discord.SlashCommandBuilder()
+        .setName('stats')
+        .setDescription('Show statistics for song chains.')
         .addSubcommand(subcommand => 
             subcommand
                 .setName('user')

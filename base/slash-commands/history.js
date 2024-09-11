@@ -29,6 +29,8 @@ var showHistory = function(interaction) {
 
 module.exports = {
     phrase: 'history',
-    data: new Discord.SlashCommandBuilder().setName('history').setDescription('See history of current game.'),
+    data: new Discord.SlashCommandBuilder()
+        .setName('history')
+        .setDescription('See history of current game.'),
     execute: showHistory
 }

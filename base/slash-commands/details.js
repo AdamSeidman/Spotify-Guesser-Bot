@@ -53,7 +53,9 @@ var getDetails = function(msg) {
 
 module.exports = {
     phrase: 'details',
-    data: new Discord.SlashCommandBuilder().setName('details').setDescription('Get most recent song description.')
+    data: new Discord.SlashCommandBuilder()
+        .setName('details')
+        .setDescription('Get most recent song description.')
         .addIntegerOption(opt => 
             opt
                 .setName('track')

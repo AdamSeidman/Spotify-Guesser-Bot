@@ -9,6 +9,8 @@ const Discord = require('discord.js')
 
 module.exports = {
     phrase: 'shuffle',
-    data: new Discord.SlashCommandBuilder().setName('shuffle').setDescription('Shuffle first word of the game.'),
+    data: new Discord.SlashCommandBuilder()
+        .setName('shuffle')
+        .setDescription('Shuffle first word of the game.'),
     execute: interaction => games.shuffle(interaction)
 }

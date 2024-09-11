@@ -4,63 +4,14 @@
  * Author: Adam Seidman
  */
 
+const fs = require('fs')
+const path = require('path')
 const games = require('./game')
 const spotify = require('./spotify')
 const Discord = require('discord.js')
 const config = require('../client/config')
 
-var getDetails = function(msg) {
-    let game = games.getGame(msg.guild.id)
-    if (game === undefined) {
-        msg.reply('There is no game in progress!')
-    }
-
-    let track = game.currentTrack
-    let trackNum = msg.options.getInteger('track', false)
-    if (trackNum) {
-        let ret = games.getTrack(game.key, trackNum)
-        if (ret) track = ret
-    }
-    if (track === undefined) {
-        msg.reply('Error! Could not find details.')
-        return
-    }
-
-    let minutes = Math.floor(track.duration / (1000 * 60))
-    let seconds = Math.round(track.duration / 1000) % 60
-    if ( seconds < 10 ) {
-        seconds = `0${seconds}`
-    }
-    let fields = [
-        {name: 'Album', value: (track.album || '_(Single)_')},
-        {name: 'Duration', value: `${minutes}:${seconds}`}
-    ]
-    if (track.memberId) {
-        fields.unshift({
-            name: 'Submitted by',
-            value: `<@${track.memberId}>`
-        })
-    }
-    let detailsEmbed = new Discord.EmbedBuilder()
-        .setColor(config.options.embedColor)
-        .setTitle(track.name)
-        .setURL(track.url)
-        .setDescription(`*${track.artist}*`)
-        .addFields(...fields)
-        .setThumbnail(track.images[0].url)
-        .setFooter({text: `Released: ${track.releaseDate}`})
-    msg.reply({embeds: [detailsEmbed]})
-}
-
-var startGame = async function(msg) {
-    let game = games.getGame(msg.guild.id)
-    if (game !== undefined) {
-        msg.reply('This server already has an active game!')
-        return
-    }
-    let track = await games.createGame(msg)
-    msg.reply(`Start the game with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
-}
+const CMD_DIR = 'slash-commands'
 
 var processMessage = async function(msg) {
     if (msg.content.trim().startsWith(config.options.defaultCommandPrefix)) {
@@ -89,64 +40,26 @@ var processMessage = async function(msg) {
     }
 }
 
-var showHistory = function(msg) {
-    let history = games.getHistory(msg.guild.id)
-    if (history === undefined || history.list === undefined || history.list.length < 1) {
-        msg.reply({content: 'Could not find game history within this server.', ephemeral: true})
-        return
-    }
-    let fields = history.list.map((el, index) => {
-        return `**${index})**  ${el.full} (<@${el.memberId}>)`
-    })
-    fields.shift()
-    let historyEmbed = new Discord.EmbedBuilder()
-        .setColor(config.options.embedColor)
-        .setTitle(`Current Game History for ${msg.guild.name}`)
-        .setDescription(`Started with:  ${history.list[0].full}\n\n${fields.join('\n')}`)
-        .setThumbnail(msg.guild.iconURL())
-        .setTimestamp()
-    msg.reply({embeds: [historyEmbed]})
-}
-
-var shuffleWord = function(msg) {
-    games.shuffle(msg)
-}
-
-const slashCommands = [
-    {
-        phrase: 'start',
-        data: new Discord.SlashCommandBuilder().setName('start').setDescription('Start new chain!'),
-        execute: startGame
-    },
-    {
-        phrase: 'details',
-        data: new Discord.SlashCommandBuilder().setName('details').setDescription('Get most recent song description.')
-            .addIntegerOption(opt => opt.setName('track').setDescription('Track number to get details of.').setMinValue(0).setRequired(false)),
-        execute: getDetails
-    },
-    {
-        phrase: 'history',
-        data: new Discord.SlashCommandBuilder().setName('history').setDescription('See history of current game.'),
-        execute: showHistory
-    },
-    {
-        phrase: 'shuffle',
-        data: new Discord.SlashCommandBuilder().setName('shuffle').setDescription('Shuffle first word of the game.'),
-        execute: shuffleWord
-    }
-]
-
 var registerSlashCommands = function(client) {
     if (client === undefined) {
         console.error('No client in registerSlashCommands!')
         return
     }
 
-    client.commands = new Discord.Collection()
+    var commandFiles = []
     const commands = []
-    slashCommands.forEach(command => {
-        client.commands.set(command.phrase, command)
-        commands.push(command.data.toJSON())
+
+    fs.readdirSync(path.join(__dirname, CMD_DIR)).forEach(file => {
+        if (path.extname(file) == '.js') {
+            commandFiles.push(`./${CMD_DIR}/${file.slice(0, file.indexOf('.'))}`)
+        }
+    })
+
+    client.commands = new Discord.Collection()
+    commandFiles.forEach(cmdFile => {
+        let cmd = require(cmdFile)
+        client.commands.set(cmd.phrase, cmd)
+        commands.push(cmd.data.toJSON())
     })
 
     const rest = new Discord.REST().setToken(config.token)

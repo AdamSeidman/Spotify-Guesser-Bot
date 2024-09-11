@@ -243,6 +243,34 @@ var makeHistoryPermanent = async function(history, memberId, ruinedReason) {
     })
 }
 
+var getAllGuesses = async function(memberId) {
+    if (!historiesSetUp) {
+        await storePermanentHistories()
+    }
+    return new Promise(resolve => {
+        let buf = []
+        Object.keys(permanentHistories).forEach(key => {
+            permanentHistories[key].hist.list.forEach(track => {
+                if (track.memberId == memberId) {
+                    buf.push({
+                        pass: true,
+                        track: track,
+                        guildId: permanentHistories[key].hist.key.slice(1)
+                    })
+                }
+            })
+            if (permanentHistories[key].ruinedMemberId == memberId) {
+                buf.push({
+                    pass: false,
+                    ruinedReason: permanentHistories[key].ruinedText,
+                    guildId: permanentHistories[key].hist.key.slice(1)
+                })
+            }           
+        })
+        resolve(buf)
+    })
+}
+
 module.exports = {
     getSavedGames,
     getSavedHistories,
@@ -252,5 +280,6 @@ module.exports = {
     updateHistory,
     deleteGame,
     makeHistoryPermanent,
-    getGuildPreviousGames
+    getGuildPreviousGames,
+    getAllGuesses
 }

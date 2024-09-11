@@ -58,8 +58,10 @@ var registerSlashCommands = function(client) {
     client.commands = new Discord.Collection()
     commandFiles.forEach(cmdFile => {
         let cmd = require(cmdFile)
-        client.commands.set(cmd.phrase, cmd)
-        commands.push(cmd.data.toJSON())
+        if (cmd.execute !== undefined) {
+            client.commands.set(cmd.phrase, cmd)
+            commands.push(cmd.data.toJSON())
+        }
     })
 
     const rest = new Discord.REST().setToken(config.token)

@@ -12,6 +12,7 @@ const Discord = require('discord.js')
 const config = require('../client/config')
 
 const CMD_DIR = 'slash-commands'
+var buttonHooks = {}
 
 var processMessage = async function(msg) {
     if (msg.content.trim().startsWith(config.options.defaultCommandPrefix)) {
@@ -61,6 +62,11 @@ var registerSlashCommands = function(client) {
         if (cmd.execute !== undefined) {
             client.commands.set(cmd.phrase, cmd)
             commands.push(cmd.data.toJSON())
+            if (cmd.buttons !== undefined) {
+                cmd.buttons.forEach(x => {
+                    buttonHooks[x.btn.data.custom_id] = x
+                })
+            }
         }
     })
 
@@ -92,8 +98,19 @@ var handleSlashCommand = async function(interaction) {
     }
 }
 
+var handleButtonPress = async function(interaction) {
+    let hook = buttonHooks[interaction.customId]
+    if (hook) {
+        hook.execute(interaction)
+    }
+    else {
+        interaction.reply({content: 'Could not complete button press request!', ephemeral: true})
+    }
+}
+
 module.exports = {
     processMessage,
     registerSlashCommands,
     handleSlashCommand,
+    handleButtonPress
 }

@@ -31,8 +31,12 @@ bot.on('messageCreate', async msg => {
 })
 
 bot.on('interactionCreate', interaction => {
-    if (!interaction.isChatInputCommand()) return
-    reqHandling.enqueueRequest(interaction.guild.id, commands.handleSlashCommand, interaction)
+    if ( interaction.isButton() ) {
+        reqHandling.enqueueRequest(interaction.guild.id, commands.handleButtonPress, interaction)
+    }
+    else if ( interaction.isChatInputCommand() ) {
+        reqHandling.enqueueRequest(interaction.guild.id, commands.handleSlashCommand, interaction)
+    }
 })
 
 bot.on('error', console.error)

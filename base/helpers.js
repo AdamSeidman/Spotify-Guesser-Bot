@@ -21,10 +21,10 @@ module.exports = {
     getActionRow: btns => {
         return [new ActionRowBuilder().addComponents(...btns.map(x => x.btn))]
     },
-    showOption: option =>
+    hideOption: option =>
         option
-            .setName('show-everyone')
-            .setDescription('Show results publicly.')
+            .setName('hide')
+            .setDescription('Hide results from being shown publicly.')
             .addChoices({
                 name: 'yes',
                 value: 'yes'
@@ -33,5 +33,5 @@ module.exports = {
                 value: 'no'
             })
             .setRequired(false),
-    getShowResult: interaction => (interaction.options.getString('show-everyone') !== 'yes')
+    getHideResult: interaction => (interaction.options.getString('hide') === 'yes')
 }

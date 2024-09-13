@@ -7,7 +7,7 @@
 const Discord = require('discord.js')
 const spotify = require('../spotify')
 const { trackDetailsEmbed } = require('../embedBuilder')
-const { showOption, getShowResult } = require('../helpers')
+const { hideOption, getHideResult } = require('../helpers')
 
 module.exports = {
     phrase: 'song-info',
@@ -20,9 +20,9 @@ module.exports = {
                 .setDescription('Song to find.')
                 .setRequired(true)
         )
-        .addStringOption(showOption),
+        .addStringOption(hideOption),
     execute: async interaction => {
-        await interaction.deferReply({ ephemeral: getShowResult(interaction) })
+        await interaction.deferReply({ ephemeral: getHideResult(interaction) })
         let title = interaction.options.getString('track')
         let track = await spotify.getTrackByArtist( title )
         if ( track === undefined ) {

@@ -6,7 +6,7 @@
 
 const games = require('../game')
 const Discord = require('discord.js')
-const config = require('../../client/config')
+const { trackDetailsEmbed } = require('../embedBuilder')
 
 var getDetails = function(msg) {
     let game = games.getGame(msg.guild.id)
@@ -20,35 +20,12 @@ var getDetails = function(msg) {
         let ret = games.getTrack(game.key, trackNum)
         if (ret) track = ret
     }
-    if (track === undefined) {
+    if (track) {
+        msg.reply({embeds: [trackDetailsEmbed(track)]})
+    }
+    else {
         msg.reply('Error! Could not find details.')
-        return
     }
-
-    let minutes = Math.floor(track.duration / (1000 * 60))
-    let seconds = Math.round(track.duration / 1000) % 60
-    if ( seconds < 10 ) {
-        seconds = `0${seconds}`
-    }
-    let fields = [
-        {name: 'Album', value: (track.album || '_(Single)_')},
-        {name: 'Duration', value: `${minutes}:${seconds}`}
-    ]
-    if (track.memberId) {
-        fields.unshift({
-            name: 'Submitted by',
-            value: `<@${track.memberId}>`
-        })
-    }
-    let detailsEmbed = new Discord.EmbedBuilder()
-        .setColor(config.options.embedColor)
-        .setTitle(track.name)
-        .setURL(track.url)
-        .setDescription(`*${track.artist}*`)
-        .addFields(...fields)
-        .setThumbnail(track.images[0].url)
-        .setFooter({text: `Released: ${track.releaseDate}`})
-    msg.reply({embeds: [detailsEmbed]})
 }
 
 module.exports = {

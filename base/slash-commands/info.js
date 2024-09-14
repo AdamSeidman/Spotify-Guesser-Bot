@@ -25,7 +25,7 @@ const getNextWord = (interaction, hide) => {
 const getCurrentRound = async (interaction, hide) => {
     if (games.getGame(interaction.guild.id)) {
         let guesses = await db.getGuildPreviousGames(interaction.guild.id)
-        interaction.reply({content: `This is round #__${ guesses.length + 1 }__.`, ephemeral: hide})
+        interaction.reply({content: `This is round #__**${ guesses.length + 1 }**__.`, ephemeral: hide})
     }
     else {
         interaction.reply({content: 'No game has been started!', ephemeral: true})
@@ -52,6 +52,7 @@ module.exports = {
             subcommand
                 .setName('round-number')
                 .setDescription('Get the round number of the current chain.')
+                .addStringOption(hideOption)
         ),
     execute: async interaction => {
         let sub = interaction.options.getSubcommand()

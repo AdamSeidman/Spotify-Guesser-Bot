@@ -200,7 +200,7 @@ var getGuildPreviousGames = async function(guildId) {
     }
     let res = []
     Object.keys(permanentHistories).forEach(x => {
-        if (permanentHistories[x].key === `#${guildId}`) {
+        if (permanentHistories[x].hist.key === `#${guildId}`) {
             res.push(permanentHistories[x])
         }
     })

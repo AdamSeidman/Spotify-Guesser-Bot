@@ -5,8 +5,9 @@
  */
 
 const db = require('../db')
-const Discord = require('discord.js')
 const games = require('../game')
+const Discord = require('discord.js')
+const { isAdmin } = require('../helpers')
 
 const setChannel = async interaction => {
     let channel = interaction.options.getChannel('channel')
@@ -88,6 +89,10 @@ module.exports = {
                 )
         ),
     execute: interaction => {
+        if (!isAdmin(interaction)) {
+            interaction.reply({ content: 'Set commands are restricted to administrators.', ephemeral: true })
+            return
+        }
         let sub = interaction.options.getSubcommand()
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
             interaction.reply({ content: 'Could not find set sub-command!', ephemeral: true })

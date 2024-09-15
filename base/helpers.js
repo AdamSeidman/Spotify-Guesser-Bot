@@ -33,5 +33,15 @@ module.exports = {
                 value: 'no'
             })
             .setRequired(false),
-    getHideResult: interaction => (interaction.options.getString('hide') === 'yes')
+    getHideResult: interaction => (interaction.options.getString('hide') === 'yes'),
+    isAdmin: msg => {
+        if (msg === undefined || msg.member === undefined) return false
+        let isAdmin = false
+        try {
+            let res = msg.member.permissionsIn(msg.channel).has('ADMINISTRATOR')
+            isAdmin = res
+        // eslint-disable-next-line no-empty
+        } catch (err) {}
+        return isAdmin
+    }
 }

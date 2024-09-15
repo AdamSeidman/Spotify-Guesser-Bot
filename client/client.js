@@ -25,13 +25,19 @@ bot.on('ready', async () => {
 })
 
 bot.on('messageCreate', async msg => {
-    if (!msg.author.bot) {
+    if (msg.member === null) {
+        console.log(`DM (${msg.author.username}): ${msg.content}`)
+    }
+    else if (!msg.author.bot) {
         reqHandling.enqueueRequest(msg.guild.id, commands.processMessage, msg)
     }
 })
 
 bot.on('interactionCreate', interaction => {
-    if ( interaction.isButton() ) {
+    if (interaction.member === null) {
+        interaction.reply('Interactions/Commands are only available within servers.')
+    }
+    else if ( interaction.isButton() ) {
         reqHandling.enqueueRequest(interaction.guild.id, commands.handleButtonPress, interaction)
     }
     else if ( interaction.isChatInputCommand() ) {

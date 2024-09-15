@@ -54,6 +54,7 @@ module.exports = {
                     option.setName('channel')
                         .setDescription('Channel for the game.')
                         .setRequired(true)
+                        .addChannelTypes(Discord.ChannelType.GuildText)
                 )
         )
         .addSubcommand(subcommand =>

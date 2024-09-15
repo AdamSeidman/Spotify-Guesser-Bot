@@ -7,6 +7,7 @@
 const games = require('../game')
 const Discord = require('discord.js')
 const config = require('../../client/config')
+const { hideOption, getHideResult } = require('../helpers')
 
 var showHistory = function(interaction) {
     let history = games.getHistory(interaction.guild.id)
@@ -24,13 +25,14 @@ var showHistory = function(interaction) {
         .setDescription(`Started with:  ${history.list[0].full}\n\n${fields.join('\n')}`)
         .setThumbnail(interaction.guild.iconURL())
         .setTimestamp()
-    interaction.reply({embeds: [historyEmbed]})
+    interaction.reply({embeds: [historyEmbed], ephemeral: getHideResult(interaction)})
 }
 
 module.exports = {
     phrase: 'history',
     data: new Discord.SlashCommandBuilder()
         .setName('history')
-        .setDescription('See history of current game.'),
+        .setDescription('See history of current game.')
+        .addStringOption(hideOption),
     execute: showHistory
 }

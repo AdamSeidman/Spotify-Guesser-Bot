@@ -6,12 +6,14 @@
 
 const Discord = require('discord.js')
 const config = require('../../client/config')
+const { hideOption, getHideResult } = require('../helpers')
 
 module.exports = {
     phrase: 'about',
     data: new Discord.SlashCommandBuilder()
         .setName('about')
-        .setDescription('See information about the bot.'),
+        .setDescription('See information about the bot.')
+        .addStringOption(hideOption),
     execute: interaction => {
         let embed = new Discord.EmbedBuilder()
             .setColor(config.options.embedColor)
@@ -24,6 +26,6 @@ module.exports = {
                 value: '© 2024 Adam Seidman'
             })
             .setTimestamp()
-        interaction.reply({ embeds: [embed], ephemeral: true })
+        interaction.reply({ embeds: [embed], ephemeral: getHideResult(interaction) })
     }
 }

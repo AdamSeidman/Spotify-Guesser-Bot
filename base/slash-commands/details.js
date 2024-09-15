@@ -7,24 +7,25 @@
 const games = require('../game')
 const Discord = require('discord.js')
 const { trackDetailsEmbed } = require('../embedBuilder')
+const { hideOption, getHideResult } = require('../helpers')
 
-var getDetails = function(msg) {
-    let game = games.getGame(msg.guild.id)
+const getDetails = interaction => {
+    let game = games.getGame(interaction.guild.id)
     if (game === undefined) {
-        msg.reply('There is no game in progress!')
+        interaction.reply({content: 'There is no game in progress!', ephemeral: true})
     }
 
     let track = game.currentTrack
-    let trackNum = msg.options.getInteger('track', false)
+    let trackNum = interaction.options.getInteger('track', false)
     if (trackNum) {
         let ret = games.getTrack(game.key, trackNum)
         if (ret) track = ret
     }
     if (track) {
-        msg.reply({embeds: [trackDetailsEmbed(track)]})
+        interaction.reply({embeds: [trackDetailsEmbed(track)], ephemeral: getHideResult(interaction)})
     }
     else {
-        msg.reply('Error! Could not find details.')
+        interaction.reply({content: 'Error! Could not find details.', ephemeral: true})
     }
 }
 
@@ -39,6 +40,7 @@ module.exports = {
                 .setDescription('Track number to get details of.')
                 .setMinValue(0)
                 .setRequired(false)
-        ),
+        )
+        .addStringOption(hideOption),
     execute: getDetails
 }

@@ -8,6 +8,8 @@ const sqlite3 = require('sqlite3').verbose()
 
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'
+const serverRulesTable = 'ServerRules'
+const challengeResultsTable = 'ChallengeResults'
 const savedImmHistoriesTable = 'ImmediateHistories'
 const permanentHistoriesTable = 'PermanentHistories'
 
@@ -193,6 +195,145 @@ var storePermanentHistories = function() {
     })
 }
 
+var challengesSetUp = false
+var challengeResults = {}
+var storeChallengeResults = function() {
+    if (challengesSetUp) return
+    challengesSetUp = true
+    return new Promise((resolve, reject) => {
+        let db = open()
+        db.each(`SELECT * FROM ${challengeResultsTable}`, (err, row) => {
+            if (err) {
+                close(db)
+                console.error(err)
+                challengesSetUp = false
+                reject(new Error('Select Error.'))
+                return
+            }
+            else {
+                try {
+                    challengeResults[row.key] = JSON.parse(row.data)
+                }
+                catch (err) {
+                    close(db)
+                    console.error(err)
+                    challengesSetUp = false
+                    reject(new Error('Parse Error.'))
+                    return
+                }
+            }
+        }, () => {
+            resolve(challengeResults)
+        })
+    })
+}
+
+var serverRulesSetUp = false
+var serverRules = {}
+var storeServerRules = function() {
+    if (serverRulesSetUp) return
+    serverRulesSetUp = true
+    return new Promise((resolve, reject) => {
+        let db = open()
+        db.each(`SELECT * FROM ${serverRulesTable}`, (err, row) => {
+            if (err) {
+                close(db)
+                console.error(err)
+                serverRulesSetUp = false
+                reject(new Error('Select Error.'))
+                return
+            }
+            else {
+                try {
+                    serverRules[row.key] = JSON.parse(row.data)
+                }
+                catch (err) {
+                    close(db)
+                    console.error(err)
+                    serverRulesSetUp = false
+                    reject(new Error('Parse Error.'))
+                    return
+                }
+            }
+        }, () => {
+            resolve(serverRules)
+        })
+    })
+}
+
+var getServerRules = async function(guildId) {
+    if (guildId === undefined) return
+    if (!serverRulesSetUp) {
+        await storeServerRules()
+    }
+    return new Promise((resolve, reject) => {
+        let key = `#${guildId}`
+        if (serverRules[key]) {
+            resolve(serverRules[key])
+        }
+        else {
+            serverRules[key] = {
+                key,
+                prefix: '!',
+                'challenges-allowed': true,
+                'single-words-allowed': false
+            }
+            let db = open()
+            db.run(`INSERT INTO ${serverRulesTable} (key, data) VALUES (?, ?)`, [key, JSON.stringify(serverRules[key])], err => {
+                db.close()
+                if (err) {
+                    console.error(err)
+                    reject()
+                }
+                else {
+                    resolve(serverRules[key])
+                }
+            })
+        }
+    })
+}
+
+var setServerRuleById = async function(guildId, id, value) {
+    if (guildId === undefined || id === undefined || value === undefined) return
+    if (!serverRulesSetUp) {
+        await storeServerRules()
+    }
+    let rules = await getServerRules(guildId)
+    let key = `#${guildId}`
+    if (rules === undefined || rules[id] === value) return
+    else {
+        serverRules[key][id] = value
+        return new Promise((resolve, reject) => {
+            let db = open()
+            db.run(`UPDATE ${serverRulesTable} SET data=(?) WHERE key='${key}'`, [JSON.stringify(serverRules[key])], err => {
+                db.close()
+                if (err) {
+                    console.error(err)
+                    reject(err)
+                }
+                else {
+                    resolve()
+                }
+            })
+        })
+    }
+}
+
+var setChallengesAllowed = async function(guildId, allowed) {
+    if (guildId === undefined || allowed === undefined) return
+    await setServerRuleById(guildId, 'challenges-allowed', allowed)
+}
+
+var setSingleWordsAllowed = async function(guildId, allowed) {
+    if (guildId === undefined || allowed === undefined) return
+    await setServerRuleById(guildId, 'single-words-allowed', allowed)
+}
+
+var setServerPrefix = async function(guildId, prefix) {
+    if (guildId === undefined || prefix === undefined) return
+    await setServerRuleById(guildId, 'prefix', prefix)
+}
+
 var getGuildPreviousGames = async function(guildId) {
     if (guildId === undefined) return
     if (!historiesSetUp) {
@@ -205,6 +346,96 @@ var getGuildPreviousGames = async function(guildId) {
         }
     })
     return res
+}
+
+var getChallengeResultsByPlayer = async function(playerId) {
+    if (playerId === undefined) return
+    if (!challengesSetUp) {
+        await storeChallengeResults()
+    }
+    let res = {}
+    Object.keys(challengeResults).forEach(x => {
+        let key = x.slice(x.indexOf('|') + 1)
+        if (key == playerId) {
+            if (res[key]) {
+                if (challengeResults[x].success) { res[key].success += 1 }
+                else { res[key].failure += 1 }
+            }
+            else if (challengeResults[x].success) {
+                res[key] = {
+                    key,
+                    success: 1,
+                    failure: 0
+                }
+            }
+            else {
+                res[key] = {
+                    key,
+                    success: 0,
+                    failure: 1
+                }
+            }
+        }
+    })
+    return res
+}
+
+var getChallengeResultsByGuild = async function(guildId) {
+    if (guildId === undefined) return
+    if (!challengesSetUp) {
+        await storeChallengeResults()
+    }
+    let res = {}
+    Object.keys(challengeResults).forEach(x => {
+        let key = x.slice(0, x.indexOf('|'))
+        if (key == guildId) {
+            if (res[key]) {
+                if (challengeResults[x].success) { res[key].success += 1 }
+                else { res[key].failure += 1 }
+            }
+            else if (challengeResults[x].success) {
+                res[key] = {
+                    key,
+                    success: 1,
+                    failure: 0
+                }
+            }
+            else {
+                res[key] = {
+                    key,
+                    success: 0,
+                    failure: 1
+                }
+            }
+        }
+    })
+    return res
+}
+
+var makeChallengeResult = async function(guildId, userId, pass) {
+    if (userId === undefined || guildId === undefined) return
+    if (!challengesSetUp) {
+        await storeChallengeResults()
+    }
+    return new Promise((resolve, reject) => {
+        let data = {
+            key: `${guildId}|${userId}`,
+            success: pass? 1 : 0,
+            failure: pass? 0 : 1
+        }
+        challengeResults[data.key] = data
+        let db = open()
+        db.run(`INSERT INTO ${challengeResultsTable} (key, data) VALUES (?, ?)`, [data.key, JSON.stringify(data)], err => {
+            db.close()
+            if (err) {
+                console.error(err)
+                reject(new Error('Insert Error.'))
+            }
+            else {
+                resolve(data)
+            }
+        })
+    })
 }
 
 var makeHistoryPermanent = async function(history, memberId, ruinedReason) {
@@ -281,5 +512,12 @@ module.exports = {
     deleteGame,
     makeHistoryPermanent,
     getGuildPreviousGames,
-    getAllGuesses
+    getAllGuesses,
+    getChallengeResultsByGuild,
+    getChallengeResultsByPlayer,
+    makeChallengeResult,
+    getServerRules,
+    setChallengesAllowed,
+    setSingleWordsAllowed,
+    setServerPrefix
 }

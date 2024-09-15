@@ -5,6 +5,7 @@
  */
 
 const fs = require('fs')
+const db = require('./db')
 const path = require('path')
 const games = require('./game')
 const spotify = require('./spotify')
@@ -15,11 +16,12 @@ const CMD_DIR = 'slash-commands'
 var buttonHooks = {}
 
 var processMessage = async function(msg) {
-    if (msg.content.trim().startsWith(config.options.defaultCommandPrefix)) {
+    let rules = await db.getServerRules(msg.guild.id)
+    if (msg.content.trim().startsWith(rules.prefix)) {
         let game = games.getGame(msg.guild.id)
         if (game === undefined || game.channelId !== msg.channel.id) return
         let track = msg.content.substring(msg.content.toLowerCase().indexOf(
-            config.options.defaultCommandPrefix.toLowerCase()) + config.options.defaultCommandPrefix.length).trim()
+            rules.prefix.toLowerCase()) + rules.prefix.length).trim()
         if (track === undefined || track.length < 1) return
         let trackByArtist = await spotify.getTrackByArtist(track)
         if (trackByArtist === undefined) {
@@ -101,7 +103,7 @@ var handleSlashCommand = async function(interaction) {
 var handleButtonPress = async function(interaction) {
     let hook = buttonHooks[interaction.customId]
     if (hook) {
-        hook.execute(interaction)
+        await hook.execute(interaction)
     }
     else {
         interaction.reply({content: 'Could not complete button press request!', ephemeral: true})

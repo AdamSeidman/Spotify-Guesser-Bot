@@ -10,7 +10,7 @@ const SpotifyWebApi = require('spotify-web-api-node')
 
 var spotifyApi = undefined
 
-var makeTrack = function(rawTrack) {
+const makeTrack = rawTrack => {
     if (rawTrack === undefined || rawTrack.artists === undefined) return
     return {
         full: `"${rawTrack.name}" - ${rawTrack.artists[0].name}`,
@@ -35,7 +35,7 @@ const requestTokens = async () => {
     setTokens((await spotifyApi.clientCredentialsGrant()).body)
 }
 
-var start = function() {
+const start = () => {
     if (spotifyApi !== undefined) {
         console.error('Tried to regenerate spotify API!')
         return
@@ -49,14 +49,14 @@ var start = function() {
     setInterval(requestTokens, config.options.credentialUpdateInterval)
 }
 
-var getAllTracks = function(searchTerm) {
+const getAllTracks = searchTerm => {
     let buf = []
     return new Promise((resolve, reject) => {
         if (spotifyApi === undefined || typeof searchTerm !== 'string') {
             reject(new Error('Invalid state in "getAllTracks".'))
         }
         else {
-            let callback = function(data) {
+            let callback = data => {
                 data.body.tracks.items.forEach(x => {
                     let item = makeTrack(x)
                     if ( item.name.toUpperCase().includes(searchTerm.toUpperCase()) && item.full.length > 8 && buf.find(y => {
@@ -78,14 +78,14 @@ var getAllTracks = function(searchTerm) {
     })
 }
 
-var getTrack = function(track) {
+const getTrack = track => {
     let count = 0
     return new Promise((resolve, reject) => {
         if (spotifyApi === undefined || typeof track !== 'string') {
             reject(new Error('Invalid state in "getTrack".'))
             return
         }
-        let callback = function(data) {
+        let callback = data => {
             count++
             let res = data.body.tracks.items.find(x => {
                 return strip(x.name.toUpperCase().trim()) === strip(track.toUpperCase().trim()) && x.name.length > 0
@@ -110,7 +110,7 @@ var getTrack = function(track) {
     })
 }
 
-var getTrackByArtist = function(track) {
+const getTrackByArtist = track => {
     return new Promise((resolve, reject) => {
         if (typeof track !== 'string' || !track.includes('-')) {
             resolve()
@@ -121,7 +121,7 @@ var getTrackByArtist = function(track) {
         else {
             let song = track.slice(0, track.lastIndexOf('-')).trim()
             let artist = track.slice(track.lastIndexOf('-') + 1).trim()
-            let callback = function(data) {
+            let callback = data => {
                 let res = data.body.tracks.items.find(x => {
                     return strip(x.name.toUpperCase().trim()) === strip(song.toUpperCase())
                         && strip(x.artists[0].name.toUpperCase().trim()) === strip(artist.toUpperCase())
@@ -142,7 +142,7 @@ var getTrackByArtist = function(track) {
     })
 }
 
-var getRandomTrack = async function() {
+const getRandomTrack = async () => {
     let track = undefined
     let subProcess = function() {
         let originalSearchTerm = randomArrayItem(config.randomTrackTerms)
@@ -193,10 +193,40 @@ var getRandomTrack = async function() {
     return track
 }
 
+const getFirstTrack = async word => {
+    let count = 0
+    return new Promise((resolve, reject) => {
+        if (spotifyApi === undefined || typeof word !== 'string' || word.length === 0) resolve()
+        let callback = data => {
+            count++
+            let res = data.body.tracks.items.find(x => {
+                return strip(x.name.includes(' ') && x.name.toUpperCase().trim().split(' ')[0]) === strip(word.toUpperCase().trim())
+            })
+            if ( res !== undefined ) {
+                resolve(makeTrack(res))
+            }
+            else if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
+                if (count >= config.options.maxSearchPages) {
+                    resolve()
+                }
+                else {
+                    spotifyApi.searchTracks(strip(word), {offset: (data.body.tracks.offset + data.body.tracks.limit)})
+                        .then(callback, reject)
+                }
+            }
+            else {
+                resolve()
+            }
+        }
+        spotifyApi.searchTracks(strip(word)).then(callback, reject)
+    })
+}
+
 module.exports = {
     start,
     getAllTracks,
     getTrack,
     getTrackByArtist,
-    getRandomTrack
+    getRandomTrack,
+    getFirstTrack
 }

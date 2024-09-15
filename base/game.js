@@ -43,7 +43,7 @@ var getShortName = function(track) {
     return strip(track.name).trim().toLowerCase()
 }
 
-var createGame = async function(msg) {
+var createGame = async function(msg, channelId) {
     if (msg === undefined) {
         return
     }
@@ -55,7 +55,7 @@ var createGame = async function(msg) {
     let track = await spotify.getRandomTrack()
     game = {
         key: `#${msg.guild.id}`,
-        channelId: msg.channel.id,
+        channelId: channelId || msg.channel.id,
         lastMemberId: 0,
         usedTracks: [getShortName(track)],
         currentTrack: track,
@@ -82,6 +82,7 @@ var closeGame = async function(game, memberId, ruinedReason) {
 var guess = async function(msg, track) {
     let game = getGame(msg.guild.id)
     if (game === undefined) return 'Unknown Error!'
+    let rules = await db.getServerRules(msg.guild.id)
     let ruinedMsg = `<@${msg.member.id}> RUINED IT AT **${game.count}**!!`
     if (game.lastMemberId === msg.member.id) {
         let ruinedReason = '**No going twice.**'
@@ -94,7 +95,7 @@ var guess = async function(msg, track) {
         return [ruinedMsg, ruinedReason]
     }
     let shortName = getShortName(track)
-    if (shortName.split(' ').length <= 1) {
+    if (shortName.split(' ').length <= 1 && !rules['single-words-allowed']) {
         let ruinedReason = '**No single words.**'
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
@@ -148,6 +149,22 @@ var shuffle = async function(msg) {
     }
 }
 
+var changeChannel = async function(msg, channel) {
+    if (msg === undefined || channel === undefined) return
+    let game = getGame(msg.guild.id)
+    if (channel === undefined) {
+        msg.reply({content: 'Error! Could not find channel!', ephemeral: true})
+    } else if (game) {
+        game.channelId = channel.id
+        return false
+    }
+    else {
+        let track = await createGame(msg, channel.id)
+        channel.send(`Start the game with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
+        return true
+    }
+}
+
 module.exports = {
     initGames,
     getGame,
@@ -155,5 +172,6 @@ module.exports = {
     createGame,
     guess,
     getHistory,
-    shuffle
+    shuffle,
+    changeChannel
 }

@@ -32,9 +32,26 @@ const getCurrentRound = async (interaction, hide) => {
     }
 }
 
+const showRules = async (interaction, hide) => {
+    let rules = await db.getServerRules(interaction.guild.id)
+    if (rules) {
+        interaction.reply({content: `**Server Rules**:\n  Prefix: \`${
+            rules.prefix
+        }\`\n  Single Words Allowed:  \`${
+            rules['single-words-allowed']
+        }\`\n  Challenges Allowed:  \`${
+            rules['challenges-allowed']
+        }\``, ephemeral: hide})
+    }
+    else {
+        interaction.reply({content: 'Error. Could not find server rules!', ephemeral: true})
+    }
+}
+
 const subCommands = {
     'next-word': getNextWord,
-    'round-number': getCurrentRound
+    'round-number': getCurrentRound,
+    rules: showRules
 }
 
 module.exports = {
@@ -52,6 +69,12 @@ module.exports = {
             subcommand
                 .setName('round-number')
                 .setDescription('Get the round number of the current chain.')
+                .addStringOption(hideOption)
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('rules')
+                .setDescription('See server rules.')
                 .addStringOption(hideOption)
         ),
     execute: async interaction => {

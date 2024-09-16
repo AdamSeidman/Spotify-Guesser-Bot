@@ -60,14 +60,41 @@ var showUserStats = async function(interaction) {
             max = song.count
         }
     })
+    let challenges = await db.getChallengeResultsByUser(user.id)
+    let globalChallenges = {
+        success: 0,
+        failure: 0
+    }
+    let guildChallenges = challenges[`${interaction.guild.id}`]
+    Object.keys(challenges).forEach(x => {
+        globalChallenges.success += challenges[x].success
+        globalChallenges.failure += challenges[x].failure
+    })
+
+    let globalChallengeRateText = `\nChallenge Rate: **${
+        globalChallenges.success
+    }/${
+        globalChallenges.success + globalChallenges.failure
+    }**`
+    let guildChallengeRateText = `\nChallenge Rate: **${
+        guildChallenges.success
+    }/${
+        guildChallenges.success + guildChallenges.failure
+    }**`
+    let rules = await db.getServerRules(interaction.guild.id)
+    if (rules === undefined || !rules['challenges-allowed']) {
+        guildChallengeRateText = ''
+        globalChallengeRateText = ''
+    }
+
     let globalStats = `Correct: **${globalCorrect}**
         Incorrect: **${globalIncorrect}**
-        Correct Rate: **${getPercentage(globalCorrect, guesses.length)}**
-        Score: **${globalCorrect - globalIncorrect}**`
+        Correct Rate: **${getPercentage(globalCorrect, guesses.length)}**${globalChallengeRateText}
+        Score: **${globalCorrect + globalChallenges.success - globalIncorrect - globalChallenges.failure}**`
     let guildStats = `Correct: **${guildCorrect}**
         Incorrect: **${guildIncorrect}**
-        Correct Rate: **${getPercentage(guildCorrect, (guildCorrect + guildIncorrect))}**
-        Score: **${guildCorrect - guildIncorrect}**`
+        Correct Rate: **${getPercentage(guildCorrect, (guildCorrect + guildIncorrect))}**${guildChallengeRateText}
+        Score: **${guildCorrect + guildChallenges.success - guildIncorrect - guildChallenges.failure}**`
     let fields = [
         {name: 'Global Stats', value: globalStats, inline: true},
         {name: `Stats for \`${interaction.guild.name}\``, value: guildStats, inline: true},

@@ -7,6 +7,7 @@
 const db = require('./db')
 const spotify = require('./spotify')
 const { strip } = require('./helpers')
+const config = require('../client/config')
 
 var map = {}
 var history = {}
@@ -72,11 +73,40 @@ var createGame = async function(msg, channelId) {
     return track
 }
 
+var addBotTrack = async function(msg) {
+    if (msg === undefined) return
+    let game = getGame(msg.guild.id)
+    if (game === undefined) return
+    let track = await spotify.getRandomTrack()
+    game.usedTracks.push( getShortName(track) )
+    history[game.key].list.push({
+        ...track,
+        memberId: config.botId
+    })
+    if (game.usedTracks.length > repeatGuesses) {
+        game.usedTracks.shift()
+    }
+    game.currentTrack = track
+    game.lastMemberId = config.botId
+    game.count = game.count + 1
+    await db.updateGame(game)
+    await db.updateHistory(history[game.key])
+    return track
+}
+
 var closeGame = async function(game, memberId, ruinedReason) {
     if (game === undefined) return
     await db.deleteGame(game)
     await db.makeHistoryPermanent(history[game.key], memberId, ruinedReason)
     delete map[game.key]
+}
+
+var failure = async function(msg, failureReason) {
+    if (msg === undefined || failureReason === undefined) return
+    let game = getGame(msg.guild.id)
+    if (game !== undefined) {
+        await closeGame(game, msg.member.id, `**${failureReason}**`)
+    }
 }
 
 var guess = async function(msg, track) {
@@ -173,5 +203,7 @@ module.exports = {
     guess,
     getHistory,
     shuffle,
-    changeChannel
+    changeChannel,
+    failure,
+    addBotTrack
 }

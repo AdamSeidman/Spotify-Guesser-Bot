@@ -9,6 +9,7 @@ const games = require('../game')
 const spotify = require('../spotify')
 const Discord = require('discord.js')
 const { getActionRow, strip } = require('../helpers')
+const { trackDetailsEmbed } = require('../embedBuilder')
 
 var pendingChallenges = {}
 
@@ -31,20 +32,22 @@ const confirmAction = interaction => {
     else {
         interaction.update({content: 'Challenge Submitted!', components: []})
         interaction.channel.send(`<@${interaction.member.id}> issued a challenge against \`${context.game.currentTrack.name}\`!`)
-        spotify.getFirstTrack(context.word).then(track => {
+        spotify.getFirstTrack(context.word).then(async track => {
+            db.makeChallengeResult(interaction.guild.id, interaction.member.id, track === undefined)
             if (track) {
-                interaction.channel.send(`Failure: ${track.full}`)
+                await games.failure(interaction, 'Challenge failed.')
+                interaction.channel.send({content: 'Challenge failed!', embeds: [trackDetailsEmbed(track)]})
+                track = await games.createGame(interaction)
+                interaction.channel.send(`Start again from \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\``)
             }
             else {
-                interaction.channel.send('success')
+                let track = await games.addBotTrack(interaction)
+                interaction.channel.send(`Challenge successful! Continue with \`${track.full}\` (next word \`${
+                    track.name.toLowerCase().split(' ').slice(-1)[0]
+                }\``)
             }
         })
-
-
-        // let track = await spotify.getFirstTrack(context.word)
     }
-
-    // complete request
 }
 
 const cancelAction = interaction => {

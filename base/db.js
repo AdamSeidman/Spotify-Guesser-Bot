@@ -196,7 +196,7 @@ var storePermanentHistories = function() {
 }
 
 var challengesSetUp = false
-var challengeResults = {}
+var challengeResults = []
 var storeChallengeResults = function() {
     if (challengesSetUp) return
     challengesSetUp = true
@@ -212,7 +212,7 @@ var storeChallengeResults = function() {
             }
             else {
                 try {
-                    challengeResults[row.key] = JSON.parse(row.data)
+                    challengeResults.push(JSON.parse(row.data))
                 }
                 catch (err) {
                     close(db)
@@ -348,31 +348,22 @@ var getGuildPreviousGames = async function(guildId) {
     return res
 }
 
-var getChallengeResultsByPlayer = async function(playerId) {
-    if (playerId === undefined) return
+var getChallengeResultsByUser = async function(userId) {
+    if (userId === undefined) return
     if (!challengesSetUp) {
         await storeChallengeResults()
     }
     let res = {}
-    Object.keys(challengeResults).forEach(x => {
-        let key = x.slice(x.indexOf('|') + 1)
-        if (key == playerId) {
-            if (res[key]) {
-                if (challengeResults[x].success) { res[key].success += 1 }
-                else { res[key].failure += 1 }
-            }
-            else if (challengeResults[x].success) {
-                res[key] = {
-                    key,
-                    success: 1,
-                    failure: 0
-                }
+    challengeResults.forEach(x => {
+        if (x.userId == userId) {
+            if (res[x.guildId]) {
+                if (x.success) { res[x.guildId].success += 1 }
+                else { res[x.guildId].failure += 1 }
             }
             else {
-                res[key] = {
-                    key,
-                    success: 0,
-                    failure: 1
+                res[x.guildId] = {
+                    success: x.success? 1 : 0,
+                    failure: x.success? 0 : 1
                 }
             }
         }
@@ -386,25 +377,16 @@ var getChallengeResultsByGuild = async function(guildId) {
         await storeChallengeResults()
     }
     let res = {}
-    Object.keys(challengeResults).forEach(x => {
-        let key = x.slice(0, x.indexOf('|'))
-        if (key == guildId) {
-            if (res[key]) {
-                if (challengeResults[x].success) { res[key].success += 1 }
-                else { res[key].failure += 1 }
-            }
-            else if (challengeResults[x].success) {
-                res[key] = {
-                    key,
-                    success: 1,
-                    failure: 0
-                }
+    challengeResults.forEach(x => {
+        if (x.guildId == guildId) {
+            if (res[x.userId]) {
+                if (x.success) { res[x.userId].success += 1 }
+                else { res[x.userId].failure += 1 }
             }
             else {
-                res[key] = {
-                    key,
-                    success: 0,
-                    failure: 1
+                res[x.userId] = {
+                    success: x.success? 1 : 0,
+                    failure: x.success? 0 : 1
                 }
             }
         }
@@ -421,9 +403,11 @@ var makeChallengeResult = async function(guildId, userId, pass) {
         let data = {
             key: `${guildId}|${userId}`,
             success: pass? 1 : 0,
-            failure: pass? 0 : 1
+            failure: pass? 0 : 1,
+            guildId,
+            userId
         }
-        challengeResults[data.key] = data
+        challengeResults.push(data)
         let db = open()
         db.run(`INSERT INTO ${challengeResultsTable} (key, data) VALUES (?, ?)`, [data.key, JSON.stringify(data)], err => {
             db.close()
@@ -514,7 +498,7 @@ module.exports = {
     getGuildPreviousGames,
     getAllGuesses,
     getChallengeResultsByGuild,
-    getChallengeResultsByPlayer,
+    getChallengeResultsByUser,
     makeChallengeResult,
     getServerRules,
     setChallengesAllowed,

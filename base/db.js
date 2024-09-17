@@ -5,6 +5,7 @@
  */
 
 const sqlite3 = require('sqlite3').verbose()
+const { copyObject } = require('./helpers')
 
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'
@@ -486,6 +487,22 @@ var getAllGuesses = async function(memberId) {
     })
 }
 
+var getAllGuildHistories = async function(guildId) {
+    if (guildId === undefined) return
+    if (!historiesSetUp) {
+        await storePermanentHistories()
+    }
+    let res = []
+    Object.keys(permanentHistories).forEach(x => {
+        if (permanentHistories[x].hist.key.slice(1) == guildId) {
+            res.push(copyObject(permanentHistories[x]))
+        }
+    })
+    return res.sort((a, b) => {
+        return parseInt(a.key.slice(1)) - parseInt(b.key.slice(1))
+    })
+}
+
 module.exports = {
     getSavedGames,
     getSavedHistories,
@@ -503,5 +520,6 @@ module.exports = {
     getServerRules,
     setChallengesAllowed,
     setSingleWordsAllowed,
-    setServerPrefix
+    setServerPrefix,
+    getAllGuildHistories
 }

@@ -66,6 +66,12 @@ var showUserStats = async function(interaction) {
         failure: 0
     }
     let guildChallenges = challenges[`${interaction.guild.id}`]
+    if (guildChallenges === undefined) {
+        guildChallenges = {
+            success: 0,
+            failure: 0
+        }
+    }
     Object.keys(challenges).forEach(x => {
         globalChallenges.success += challenges[x].success
         globalChallenges.failure += challenges[x].failure

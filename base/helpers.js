@@ -43,5 +43,7 @@ module.exports = {
         // eslint-disable-next-line no-empty
         } catch (err) {}
         return isAdmin
-    }
+    },
+    copyObject: utils.copyObject,
+    escapeDiscordString: str => str.replace(/(\*|_|`|~|\\)/g, '\\$1')
 }

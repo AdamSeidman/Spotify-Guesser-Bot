@@ -57,22 +57,42 @@ const historyEmbed = (game, title, guild, footerText, timestamp) => {
     return embed
 }
 
-const leaderboardEmbed = (title, valueArray) => {
+const leaderboardCache = []
+
+const newLeaderboardEmbed = (title, valueArray) => {
     let desc = []
     let values = copyObject(valueArray)
-    while (values.length > 0 && desc.length < 20) {
+    leaderboardCache.push({title, list: valueArray})
+    while (values.length > 0 && desc.length < config.options.maxLeaderboardSlots) {
         let item = values.shift()
         let key = Object.keys(item)[0]
         desc.push(`${desc.length + 1}. ${key} - **${item[key]}**`)
     }
-    return new Discord.EmbedBuilder()
+    return { embed: new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(title)
+        .setDescription(desc.join('\n')),
+    idx: (leaderboardCache.length - 1) }
+}
+
+const cachedLeaderboardEmbed = (cachedVal, startVal) => {
+    if (cachedVal === undefined || cachedVal < 0 || cachedVal >= leaderboardCache.length) return
+    let desc = []
+    let values = copyObject(leaderboardCache[cachedVal].list).slice(startVal)
+    while (values.length > 0 && desc.length < config.options.maxLeaderboardSlots) {
+        let item = values.shift()
+        let key = Object.keys(item)[0]
+        desc.push(`${desc.length + 1 + startVal}. ${key} - **${item[key]}**`)
+    }
+    return new Discord.EmbedBuilder()
+        .setColor(config.options.embedColor)
+        .setTitle(leaderboardCache[cachedVal].title)
         .setDescription(desc.join('\n'))
 }
 
 module.exports = {
     trackDetailsEmbed,
     historyEmbed,
-    leaderboardEmbed
+    newLeaderboardEmbed,
+    cachedLeaderboardEmbed
 }

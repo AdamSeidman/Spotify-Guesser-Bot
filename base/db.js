@@ -459,7 +459,7 @@ var makeHistoryPermanent = async function(history, memberId, ruinedReason) {
     })
 }
 
-var getAllGuesses = async function(memberId) {
+var getAllGuessesByUser = async function(memberId) {
     if (!historiesSetUp) {
         await storePermanentHistories()
     }
@@ -487,6 +487,50 @@ var getAllGuesses = async function(memberId) {
     })
 }
 
+var getAllScores = async function(guildId) {
+    if (!historiesSetUp) {
+        await storePermanentHistories()
+    }
+    if (!challengesSetUp) {
+        await storeChallengeResults()
+    }
+    let playerMap = {}
+    let inc = playerId => {
+        if (playerId === undefined) return
+        if (playerMap[`<@${playerId}>`] === undefined) {
+            playerMap[`<@${playerId}>`] = 1
+        } else {
+            playerMap[`<@${playerId}>`] += 1
+        }
+    }
+    let dec = playerId => {
+        if (playerId === undefined) return
+        if (playerMap[`<@${playerId}>`] === undefined) {
+            playerMap[`<@${playerId}>`] = -1
+        } else {
+            playerMap[`<@${playerId}>`] -= 1
+        }
+    }
+    Object.keys(permanentHistories).forEach(key => {
+        if (guildId === undefined || permanentHistories[key].hist.key === `#${guildId}`) {
+            permanentHistories[key].hist.list.forEach(track => {
+                inc(track.memberId)
+            })
+            dec(permanentHistories[key].ruinedMemberId)
+        }
+    })
+    challengeResults.forEach(x => {
+        if (guildId === undefined || x.guildId == guildId) {
+            if (x.success) {
+                inc(x.userId)
+            } else {
+                dec(x.userId)
+            }
+        }
+    })
+    return playerMap
+}
+
 var getAllGuildHistories = async function(guildId) {
     if (guildId === undefined) return
     if (!historiesSetUp) {
@@ -503,6 +547,27 @@ var getAllGuildHistories = async function(guildId) {
     })
 }
 
+var getGuildMaxScores = async function() {
+    if (!historiesSetUp) {
+        await storePermanentHistories()
+    }
+    let map = {}
+    Object.keys(permanentHistories).forEach(x => {
+        let guildKey = permanentHistories[x].hist.key
+        if (map[guildKey] === undefined) {
+            map[guildKey] = {
+                key: guildKey,
+                score: permanentHistories[x].hist.list.length,
+                name: permanentHistories[x].hist.guildName
+            }
+        }
+        else if (permanentHistories[x].hist.list.length > map[guildKey].score) {
+            map[guildKey].score = permanentHistories[x].hist.list.length
+        }
+    })
+    return map
+}
+
 module.exports = {
     getSavedGames,
     getSavedHistories,
@@ -513,7 +578,7 @@ module.exports = {
     deleteGame,
     makeHistoryPermanent,
     getGuildPreviousGames,
-    getAllGuesses,
+    getAllGuessesByUser,
     getChallengeResultsByGuild,
     getChallengeResultsByUser,
     makeChallengeResult,
@@ -521,5 +586,7 @@ module.exports = {
     setChallengesAllowed,
     setSingleWordsAllowed,
     setServerPrefix,
-    getAllGuildHistories
+    getAllGuildHistories,
+    getGuildMaxScores,
+    getAllScores
 }

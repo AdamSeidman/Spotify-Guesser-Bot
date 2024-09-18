@@ -76,7 +76,7 @@ const subCommands = {
                 interaction.reply({content: 'There are no games to choose from!', ephemeral: true})
             }
             else if (num > histories.length) {
-                interaction.reply({content: `There are only ${histories.length} rounds!`, ephemeral: true})
+                interaction.reply({content: `There are only ${histories.length} rounds in this server!`, ephemeral: true})
             }
             else {
                 showHistory(interaction, `Round ${num} for __${

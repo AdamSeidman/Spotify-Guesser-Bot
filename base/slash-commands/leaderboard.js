@@ -4,18 +4,52 @@
  * Author: Adam Seidman
  */
 
+const db = require('../db')
 const Discord = require('discord.js')
+const embedBuilder = require('../embedBuilder')
 
-var serverLeaderboard = function(interaction) {
-    interaction.editReply('Not implemented :(')
+const userLeaderboard = async (interaction, guildId, title) => {
+    let scores = await db.getAllScores(guildId)
+    let valueArray = []
+    Object.keys(scores).forEach(key => {
+        let map = {}
+        map[key] = scores[key]
+        valueArray.push(map)
+    })
+    valueArray.sort((a, b) => {
+        let scoreA = a[Object.keys(a)[0]]
+        let scoreB = b[Object.keys(b)[0]]
+        return scoreB - scoreA
+    })
+    let leaderboard = embedBuilder.newLeaderboardEmbed(title, valueArray)
+    console.log(leaderboard.idx)
+    interaction.editReply({embeds: [leaderboard.embed]})
 }
 
-var globalUserLeaderboard = function(interaction) {
-    interaction.editReply('Not implemented :(')
+const serverLeaderboard = interaction => {
+    userLeaderboard( interaction, interaction.guild.id, `User Leaderboard for \`${interaction.guild.name}\`` )
 }
 
-var globalServerLeaderboard = function(interaction) {
-    interaction.editReply('Not implemented :(')
+const globalUserLeaderboard = interaction => {
+    userLeaderboard( interaction, undefined, 'Global User Leaderboard' )
+}
+
+const globalServerLeaderboard = async interaction => {
+    let maxScores = await db.getGuildMaxScores()
+    let valueArray = []
+    Object.keys(maxScores).forEach(x => {
+        let map = {}
+        map[maxScores[x].name] = maxScores[x].score
+        valueArray.push(map)
+    })
+    valueArray.sort((a, b) => {
+        let scoreA = a[Object.keys(a)[0]]
+        let scoreB = b[Object.keys(b)[0]]
+        return scoreB - scoreA
+    })
+    let leaderboard = embedBuilder.newLeaderboardEmbed('Global Server Leaderboard', valueArray)
+    console.log(leaderboard.idx)
+    interaction.editReply({embeds: [leaderboard.embed]})
 }
 
 const subCommands = {

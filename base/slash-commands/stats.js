@@ -28,7 +28,7 @@ var showUserStats = async function(interaction) {
     let globalCorrect = 0, guildCorrect = 0
     let globalIncorrect = 0, guildIncorrect = 0
     let guessBuf = []
-    let guesses = await db.getAllGuesses(user.id)
+    let guesses = await db.getAllGuessesByUser(user.id)
     guesses.forEach(guess => {
         if (guess.pass) {
             globalCorrect++

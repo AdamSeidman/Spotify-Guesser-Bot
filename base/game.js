@@ -6,7 +6,7 @@
 
 const db = require('./db')
 const spotify = require('./spotify')
-const { strip } = require('./helpers')
+const { strip, escapeDiscordString } = require('./helpers')
 const config = require('../client/config')
 
 var map = {}
@@ -64,7 +64,8 @@ var createGame = async function(msg, channelId) {
     }
     let hist = {
         key: `#${msg.guild.id}`,
-        list: [track]
+        list: [track],
+        guildName: escapeDiscordString(msg.guild.name)
     }
     map[game.key] = game
     history[hist.key] = hist

@@ -14,6 +14,7 @@ const config = require('../client/config')
 
 const CMD_DIR = 'slash-commands'
 var buttonHooks = {}
+var buttonActionHooks = {}
 
 var processMessage = async function(msg) {
     let rules = await db.getServerRules(msg.guild.id)
@@ -69,6 +70,9 @@ var registerSlashCommands = function(client) {
                     buttonHooks[x.btn.data.custom_id] = x
                 })
             }
+            if (cmd.btnActionHandler !== undefined) {
+                buttonActionHooks[cmd.phrase] = cmd.btnActionHandler
+            }
         }
     })
 
@@ -102,8 +106,12 @@ var handleSlashCommand = async function(interaction) {
 
 var handleButtonPress = async function(interaction) {
     let hook = buttonHooks[interaction.customId]
+    let action = interaction.customId.split('_')[0]
     if (hook) {
         await hook.execute(interaction)
+    }
+    else if (Object.keys(buttonActionHooks).includes(action)) {
+        await buttonActionHooks[action](interaction)
     }
     else {
         interaction.reply({content: 'Could not complete button press request!', ephemeral: true})

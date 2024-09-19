@@ -32,19 +32,19 @@ const confirmAction = interaction => {
     else {
         interaction.update({content: 'Challenge Submitted!', components: []})
         interaction.channel.send(`<@${interaction.member.id}> issued a challenge against \`${context.game.currentTrack.name}\`!`)
-        spotify.getFirstTrack(context.word).then(async track => {
+        spotify.getFirstTrack(context.word, context.game.usedTracks).then(async track => {
             db.makeChallengeResult(interaction.guild.id, interaction.member.id, track === undefined)
             if (track) {
                 await games.failure(interaction, 'Challenge failed.')
                 interaction.channel.send({content: 'Challenge failed!', embeds: [trackDetailsEmbed(track)]})
                 track = await games.createGame(interaction)
-                interaction.channel.send(`Start again from \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\``)
+                interaction.channel.send(`Start again from \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`)`)
             }
             else {
                 let track = await games.addBotTrack(interaction)
                 interaction.channel.send(`Challenge successful! Continue with \`${track.full}\` (next word \`${
                     track.name.toLowerCase().split(' ').slice(-1)[0]
-                }\``)
+                }\`)`)
             }
         })
     }

@@ -167,7 +167,7 @@ var shuffle = async function(msg) {
         return
     }
     else if (game.count > 0) {
-        msg.reply('You cannot shuffle once the chain has started!')
+        msg.reply({content: 'You cannot shuffle once the chain has started!', ephemeral: true})
         return
     }
     delete map[game.key]

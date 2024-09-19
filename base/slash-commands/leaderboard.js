@@ -42,24 +42,24 @@ disabledButtons.forEach(x => {
 })
 
 const getLeaderboardButtons = (idx, startVal, maxVal) => {
-    // if (maxVal < config.options.maxLeaderboardSlots) { // TODO put back
-    //     return []
-    // }
+    if (maxVal < config.options.maxLeaderboardSlots) { // TODO put back
+        return []
+    }
     let buttons = [
         new Discord.ButtonBuilder()
-            .setCustomId(`leaderboard_first_${magicNumber}_${idx}`)
+            .setCustomId(`leaderboard_${magicNumber}_first_${idx}`)
             .setLabel('⏮️')
             .setStyle(Discord.ButtonStyle.Primary),
         new Discord.ButtonBuilder()
-            .setCustomId(`leaderboard_back_${magicNumber}_${idx}_${startVal}`)
+            .setCustomId(`leaderboard_${magicNumber}_back_${idx}_${startVal}`)
             .setLabel('◀️')
             .setStyle(Discord.ButtonStyle.Primary),
         new Discord.ButtonBuilder()
-            .setCustomId(`leaderboard_forward_${magicNumber}_${idx}_${startVal}`)
+            .setCustomId(`leaderboard_${magicNumber}_forward_${idx}_${startVal}`)
             .setLabel('▶️')
             .setStyle(Discord.ButtonStyle.Primary),
         new Discord.ButtonBuilder()
-            .setCustomId(`leaderboard_last_${magicNumber}_${idx}`)
+            .setCustomId(`leaderboard_${magicNumber}_last_${idx}`)
             .setLabel('⏭️')
             .setStyle(Discord.ButtonStyle.Primary) // TODO remove buttons if list isn't long enough
     ].map(x => {
@@ -177,7 +177,15 @@ const buttonActionForward = (interaction, boardId, startIdx) => {
         interaction.reply({ content: 'Could not find button interaction start index!', ephemeral: true })
         return
     }
-    console.log(3)
+    let idx = startIdx + config.options.maxLeaderboardSlots
+    let embed = cachedLeaderboardEmbed(boardId, idx)
+    if (embed) {
+        let buttons = getLeaderboardButtons(boardId, idx, leaderboardCache[boardId].list.length)
+        interaction.update({embeds: [embed], components: getActionRow(buttons)})
+        // update
+    } else {
+        interaction.reply({ content: 'Error updating the leaderboard.', ephemeral: true })
+    }
 }
 
 const buttonActionLast = (interaction, boardId) => {
@@ -225,7 +233,7 @@ module.exports = {
             return
         }
         let actionParts = interaction.customId.split('_')
-        if ( actionParts[1] === undefined || actionParts[1] !== magicNumber ) {
+        if ( actionParts[1] === undefined || actionParts[1] != magicNumber ) {
             await interaction.update({components: getActionRow(disabledButtons)})
             interaction.followUp({ content: 'This leaderboard has expired.\nPlease re-run the desired command.', ephemeral: true })
             return

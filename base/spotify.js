@@ -193,14 +193,18 @@ const getRandomTrack = async () => {
     return track
 }
 
-const getFirstTrack = async word => {
+const getFirstTrack = async (word, exclusions) => {
     let count = 0
+    if (exclusions === undefined) {
+        exclusions = []
+    }
     return new Promise((resolve, reject) => {
         if (spotifyApi === undefined || typeof word !== 'string' || word.length === 0) resolve()
         let callback = data => {
             count++
             let res = data.body.tracks.items.find(x => {
-                return strip(x.name.includes(' ') && x.name.toUpperCase().trim().split(' ')[0]) === strip(word.toUpperCase().trim())
+                return strip(x.name.includes(' ') && x.name.toUpperCase().trim().split(' ')[0]) === strip(word.toUpperCase().trim()) 
+                    && !exclusions.includes(strip(x.name).trim().toLowerCase())
             })
             if ( res !== undefined ) {
                 resolve(makeTrack(res))

@@ -41,8 +41,8 @@ disabledButtons.forEach(x => {
     x.btn.data.disabled = true
 })
 
-const getLeaderboardButtons = (idx, startVal, maxVal) => {
-    if (maxVal < config.options.maxLeaderboardSlots) { // TODO put back
+const getLeaderboardButtons = (idx, startVal) => {
+    if (idx >= leaderboardCache.length || leaderboardCache[idx].list.length < config.options.maxLeaderboardSlots) {
         return []
     }
     let buttons = [
@@ -61,7 +61,7 @@ const getLeaderboardButtons = (idx, startVal, maxVal) => {
         new Discord.ButtonBuilder()
             .setCustomId(`leaderboard_${magicNumber}_last_${idx}`)
             .setLabel('⏭️')
-            .setStyle(Discord.ButtonStyle.Primary) // TODO remove buttons if list isn't long enough
+            .setStyle(Discord.ButtonStyle.Primary)
     ].map(x => {
         return { btn: x }
     })
@@ -69,9 +69,12 @@ const getLeaderboardButtons = (idx, startVal, maxVal) => {
         buttons[0].btn.data.disabled = true
         buttons[1].btn.data.disabled = true
     }
-    else if (startVal + config.options.maxLeaderboardSlots < maxVal) {
+    else if (startVal + config.options.maxLeaderboardSlots >= leaderboardCache[idx].list.length) {
         buttons[2].btn.data.disabled = true
         buttons[3].btn.data.disabled = true
+    }
+    if (buttons.length > 0) {
+        return getActionRow(buttons)
     }
     return buttons
 }
@@ -87,8 +90,6 @@ const newLeaderboardEmbed = (title, valueArray, userId) => {
     }
     let idx = leaderboardCache.length - 1
     let buttons = getLeaderboardButtons(idx, 0)
-    buttons[0].btn.data.disabled = true
-    buttons[1].btn.data.disabled = true
     return { embed: new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(title)
@@ -105,10 +106,11 @@ const cachedLeaderboardEmbed = (cachedVal, startVal) => {
         let key = Object.keys(item)[0]
         desc.push(`${desc.length + 1 + startVal}. ${key} - **${item[key]}**`)
     }
+    desc = desc.join('\n')
     return new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(leaderboardCache[cachedVal].title)
-        .setDescription(desc.join('\n'))
+        .setDescription(desc.length > 0? desc : 'description?')
 }
 
 const userLeaderboard = async (interaction, guildId, title) => {
@@ -125,8 +127,7 @@ const userLeaderboard = async (interaction, guildId, title) => {
         return scoreB - scoreA
     })
     let leaderboard = newLeaderboardEmbed(title, valueArray, interaction.member.id)
-    console.log(leaderboard.idx) // TODO
-    interaction.editReply({embeds: [leaderboard.embed], components: getActionRow(leaderboard.buttons)})
+    interaction.editReply({embeds: [leaderboard.embed], components: leaderboard.buttons})
 }
 
 const serverLeaderboard = interaction => {
@@ -151,7 +152,6 @@ const globalServerLeaderboard = async interaction => {
         return scoreB - scoreA
     })
     let leaderboard = newLeaderboardEmbed('Global Server Leaderboard', valueArray, interaction.member.id)
-    console.log(leaderboard.idx)
     interaction.editReply({embeds: [leaderboard.embed]})
 }
 
@@ -161,8 +161,18 @@ const subCommands = {
     'global-servers': globalServerLeaderboard
 }
 
+const updateBoard = (interaction, boardId, idx) => {
+    let embed = cachedLeaderboardEmbed(boardId, idx)
+    if (embed) {
+        let components = getLeaderboardButtons(boardId, idx)
+        interaction.update({embeds: [embed], components})
+    } else {
+        interaction.reply({ content: 'Error updating the leaderboard.', ephemeral: true })
+    }
+}
+
 const buttonActionFirst = (interaction, boardId) => {
-    console.log(1)
+    updateBoard(interaction, boardId, 0)
 }
 
 const buttonActionBack = (interaction, boardId, startIdx) => {
@@ -170,7 +180,10 @@ const buttonActionBack = (interaction, boardId, startIdx) => {
         interaction.reply({ content: 'Could not find button interaction start index!', ephemeral: true })
         return
     }
+    let idx = startIdx - config.options.maxLeaderboardSlots
+    updateBoard(interaction, boardId, idx < 0? 0 : idx)
 }
+
 
 const buttonActionForward = (interaction, boardId, startIdx) => {
     if ( isNaN(startIdx) ) {
@@ -178,18 +191,20 @@ const buttonActionForward = (interaction, boardId, startIdx) => {
         return
     }
     let idx = startIdx + config.options.maxLeaderboardSlots
-    let embed = cachedLeaderboardEmbed(boardId, idx)
-    if (embed) {
-        let buttons = getLeaderboardButtons(boardId, idx, leaderboardCache[boardId].list.length)
-        interaction.update({embeds: [embed], components: getActionRow(buttons)})
-        // update
-    } else {
-        interaction.reply({ content: 'Error updating the leaderboard.', ephemeral: true })
+    if (idx >= leaderboardCache[boardId].list.length) {
+        idx = leaderboardCache[boardId].list.length - 1
     }
+    updateBoard(interaction, boardId, idx)
 }
 
 const buttonActionLast = (interaction, boardId) => {
-    console.log(4)
+    let size = leaderboardCache[boardId].list.length
+    let count = 0
+    while (size > config.options.maxLeaderboardSlots) {
+        size -= config.options.maxLeaderboardSlots
+        count++
+    }
+    updateBoard(interaction, boardId, count * config.options.maxLeaderboardSlots)
 }
 
 const buttonActions = {
@@ -247,6 +262,7 @@ module.exports = {
             interaction.reply({ content: 'Button interaction parameters were invalid.', ephemeral: true })
             return
         }
-        buttonActions[actionParts[2]](interaction, idx, parseInt(actionParts[3]))
-    }
+        buttonActions[actionParts[2]](interaction, idx, parseInt(actionParts[4]))
+    },
+    immediate: true
 }

@@ -6,6 +6,7 @@
 
 const sqlite3 = require('sqlite3').verbose()
 const { copyObject } = require('./helpers')
+const config = require('../client/config')
 
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'
@@ -496,7 +497,7 @@ var getAllScores = async function(guildId) {
     }
     let playerMap = {}
     let inc = playerId => {
-        if (playerId === undefined) return
+        if (playerId === undefined || playerId == config.botId) return
         if (playerMap[`<@${playerId}>`] === undefined) {
             playerMap[`<@${playerId}>`] = 1
         } else {
@@ -504,7 +505,7 @@ var getAllScores = async function(guildId) {
         }
     }
     let dec = playerId => {
-        if (playerId === undefined) return
+        if (playerId === undefined || playerId == config.botId) return
         if (playerMap[`<@${playerId}>`] === undefined) {
             playerMap[`<@${playerId}>`] = -1
         } else {

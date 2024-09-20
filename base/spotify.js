@@ -164,12 +164,19 @@ const getRandomTrack = async () => {
                                 }
                                 else {
                                     var searchTerm = name[Math.floor(Math.random() * name.length)]
+                                    if (searchTerm === undefined || searchTerm.trim().length < 1) {
+                                        searchTerm = originalSearchTerm
+                                    }
                                     spotifyApi.searchTracks(searchTerm).then(final => {
                                         if (final.body.tracks.limit < 1) {
                                             resolve()
                                             return true
                                         }
-                                        resolve(makeTrack(final.body.tracks.items[0]))
+                                        let foundTrack = undefined
+                                        while (foundTrack === undefined) {
+                                            foundTrack = randomArrayItem(final.body.tracks.items)
+                                        }
+                                        resolve(makeTrack(foundTrack))
                                         return true
                                     }, reject)
                                 }

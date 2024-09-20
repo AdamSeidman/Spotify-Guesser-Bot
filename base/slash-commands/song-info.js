@@ -34,5 +34,6 @@ module.exports = {
         else {
             interaction.editReply(`Could not find \`${title}\``)
         }
-    }
+    },
+    immediate: true
 }

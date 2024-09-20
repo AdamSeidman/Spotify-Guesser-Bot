@@ -42,5 +42,6 @@ module.exports = {
                 .setRequired(false)
         )
         .addStringOption(hideOption),
-    execute: getDetails
+    execute: getDetails,
+    immediate: true
 }

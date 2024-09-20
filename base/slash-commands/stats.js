@@ -151,5 +151,6 @@ module.exports = {
         }
         await interaction.deferReply()
         subCommands[sub](interaction)
-    }
+    },
+    immediate: true
 }

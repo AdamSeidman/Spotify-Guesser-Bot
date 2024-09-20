@@ -129,5 +129,6 @@ module.exports = {
             interaction.reply({ content: 'Could not find history sub-command!', ephemeral: true })
         }
         subCommands[sub](interaction)
-    }
+    },
+    immediate: true
 }

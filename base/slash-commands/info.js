@@ -83,5 +83,6 @@ module.exports = {
             interaction.reply({ content: 'Could not find info sub-command!', ephemeral: true })
         }
         subCommands[sub](interaction, getHideResult(interaction))
-    }
+    },
+    immediate: true
 }

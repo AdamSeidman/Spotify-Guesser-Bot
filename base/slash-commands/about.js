@@ -27,5 +27,6 @@ module.exports = {
             })
             .setTimestamp()
         interaction.reply({ embeds: [embed], ephemeral: getHideResult(interaction) })
-    }
+    },
+    immediate: true
 }

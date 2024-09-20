@@ -11,12 +11,13 @@ const games = require('./game')
 const spotify = require('./spotify')
 const Discord = require('discord.js')
 const config = require('../client/config')
+const reqHandling = require('./reqHandling')
 
 const CMD_DIR = 'slash-commands'
 var buttonHooks = {}
 var buttonActionHooks = {}
 
-var processMessage = async function(msg) {
+const processMessage = async msg => {
     let rules = await db.getServerRules(msg.guild.id)
     if (msg.content.trim().startsWith(rules.prefix)) {
         let game = games.getGame(msg.guild.id)
@@ -44,7 +45,7 @@ var processMessage = async function(msg) {
     }
 }
 
-var registerSlashCommands = function(client) {
+const registerSlashCommands = client => {
     if (client === undefined) {
         console.error('No client in registerSlashCommands!')
         return
@@ -87,7 +88,16 @@ var registerSlashCommands = function(client) {
     console.log('Finished reloading slash commands.')
 }
 
-var handleSlashCommand = async function(interaction) {
+const queuedCommand = async interaction => {
+    try {
+        interaction.client.commands.get(interaction.commandName).execute(interaction)
+    } catch (err) {
+        console.error('Error executing command interaction!', err)
+        interaction.reply({content: 'Could not execute command!', ephemeral: true})
+    }
+}
+
+const handleSlashCommand = async interaction => {
     const command = interaction.client.commands.get(interaction.commandName)
 
     if (!command) {
@@ -96,19 +106,19 @@ var handleSlashCommand = async function(interaction) {
         return
     }
 
-    try {
+    if (command.immedate) {
         command.execute(interaction)
-    } catch (err) {
-        console.error('Error executing command interaction!', err)
-        interaction.reply({content: 'Could not execute command!', ephemeral: true})
+    } else {
+        reqHandling.enqueueRequest(interaction.guild.id, queuedCommand, interaction)
     }
 }
 
-var handleButtonPress = async function(interaction) {
+const handleButtonPress = async interaction => {
     let hook = buttonHooks[interaction.customId]
     let action = interaction.customId.split('_')[0]
+
     if (hook) {
-        await hook.execute(interaction)
+        reqHandling.enqueueRequest(interaction.guild.id, hook.execute, interaction)
     }
     else if (Object.keys(buttonActionHooks).includes(action)) {
         await buttonActionHooks[action](interaction)

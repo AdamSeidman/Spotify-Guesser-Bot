@@ -38,10 +38,10 @@ bot.on('interactionCreate', interaction => {
         interaction.reply('Interactions/Commands are only available within servers.')
     }
     else if ( interaction.isButton() ) {
-        reqHandling.enqueueRequest(interaction.guild.id, commands.handleButtonPress, interaction)
+        commands.handleButtonPress(interaction)
     }
     else if ( interaction.isChatInputCommand() ) {
-        reqHandling.enqueueRequest(interaction.guild.id, commands.handleSlashCommand, interaction)
+        commands.handleSlashCommand(interaction)
     }
 })
 

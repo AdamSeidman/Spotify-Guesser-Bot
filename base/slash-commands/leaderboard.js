@@ -7,7 +7,7 @@
 const db = require('../db')
 const Discord = require('discord.js')
 const config = require('../../client/config')
-const { getActionRow, copyObject } = require('../helpers')
+const { getActionRow, copyObject, escapeDiscordString } = require('../helpers')
 
 const leaderboardCache = []
 
@@ -131,7 +131,8 @@ const userLeaderboard = async (interaction, guildId, title) => {
 }
 
 const serverLeaderboard = interaction => {
-    userLeaderboard( interaction, interaction.guild.id, `User Leaderboard for \`${interaction.guild.name}\`` )
+    userLeaderboard( interaction, interaction.guild.id, `User Leaderboard for \`${
+        escapeDiscordString(interaction.guild.name)}\`` )
 }
 
 const globalUserLeaderboard = interaction => {

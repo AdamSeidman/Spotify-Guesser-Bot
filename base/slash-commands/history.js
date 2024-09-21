@@ -80,7 +80,7 @@ const getHistoryButtons = (idx, startVal) => {
     return buttons
 }
 
-const newHistoryEmbed = (title, history, userId, isCurrent) => {
+const newHistoryEmbed = (title, history, userId, thumbnail, isCurrent) => {
     let firstLine = `Started with: ${escapeDiscordString(history.hist.list.shift().full)}\n`
     let values = []
     history.hist.list.forEach((track, idx) => {
@@ -95,7 +95,7 @@ const newHistoryEmbed = (title, history, userId, isCurrent) => {
         let lastLine = `${history.hist.list.length > 0? '\n' : ''}Chain broken by <@${history.ruinedMemberId}> (${history.ruinedText})`
         values[values.length - 1] = `${values[values.length - 1]}\n${lastLine}`
     }
-    historyCache.push({title, list: copyObject(values), userId})
+    historyCache.push({title, list: copyObject(values), userId, thumbnail})
     let desc = []
     while (values.length > 0 && desc.length < config.options.maxHistorySlots) {
         desc.push(values.shift())
@@ -105,7 +105,8 @@ const newHistoryEmbed = (title, history, userId, isCurrent) => {
     return { embed: new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(title)
-        .setDescription(desc.join('\n')),
+        .setDescription(desc.join('\n'))
+        .setThumbnail(thumbnail),
     buttons, idx }
 }
 
@@ -121,6 +122,7 @@ const cachedHistoryEmbed = (cachedVal, startVal) => {
         .setColor(config.options.embedColor)
         .setTitle(historyCache[cachedVal].title)
         .setDescription(desc.length > 0? desc : ' ')
+        .setThumbnail(historyCache[cachedVal].thumbnail)
 }
 
 const showHistory = (interaction, title, game, isCurrent) => {
@@ -129,7 +131,7 @@ const showHistory = (interaction, title, game, isCurrent) => {
         interaction.reply({content: 'Internal Error!', ephemeral: true})
     }
     else {
-        let history = newHistoryEmbed(title, game, interaction.user.id, isCurrent)
+        let history = newHistoryEmbed(title, game, interaction.user.id, interaction.guild.iconURL(), isCurrent)
         interaction.editReply({embeds: [history.embed], components: history.buttons})
     }
 }

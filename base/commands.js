@@ -118,7 +118,11 @@ const handleButtonPress = async interaction => {
     let action = interaction.customId.split('_')[0]
 
     if (hook) {
-        reqHandling.enqueueRequest(interaction.guild.id, hook.execute, interaction)
+        if (action.toLowerCase().startsWith('challenge') && reqHandling.peekLength(interaction.guild.id) >= 1) {
+            interaction.reply({ content: 'The challenged guess is no longer current.', ephemeral: true })
+        } else {
+            reqHandling.enqueueRequest(interaction.guild.id, hook.execute, interaction)
+        }
     }
     else if (Object.keys(buttonActionHooks).includes(action)) {
         await buttonActionHooks[action](interaction)

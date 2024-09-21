@@ -35,15 +35,31 @@ var tryNext = function(guildId) {
         guildRequests.requestRunning = true
         let { resolve, reject, fnToCall, args } = guildRequests.requests.shift()
         let req = fnToCall(...args)
-        req.then(res => resolve(res))
-            .catch(err => reject(err))
-            .finally(() => {
-                guildRequests.requestRunning = false
-                tryNext(guildId)
-            })
+        if ( req === undefined || req.then === undefined ) {
+            resolve(req)
+            guildRequests.requestRunning = false
+            tryNext(guildId)
+        } else {
+            req.then(res => resolve(res))
+                .catch(err => reject(err))
+                .finally(() => {
+                    guildRequests.requestRunning = false
+                    tryNext(guildId)
+                })
+        }
     }
 }
 
+const peekLength = guildId => {
+    if (requestMap[`#${guildId}`] === undefined) return 0
+    let len = requestMap[`#${guildId}`].requests.length
+    if (requestMap[`#${guildId}`].requestRunning) {
+        len++
+    }
+    return len
+}
+
 module.exports = {
-    enqueueRequest
+    enqueueRequest,
+    peekLength
 }

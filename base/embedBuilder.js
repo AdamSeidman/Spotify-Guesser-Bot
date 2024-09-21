@@ -35,29 +35,6 @@ const trackDetailsEmbed = track => {
         .setFooter({text: `Released: ${track.releaseDate}`})
 }
 
-const historyEmbed = (game, title, guild, footerText, timestamp) => {
-    let fields = game.list.map((el, index) => {
-        return `**${index}**)  ` + escapeDiscordString(`${el.full} (<@${el.memberId}>)`)
-    })
-    fields.shift()
-    if (footerText) {
-        fields.push(footerText)
-    }
-    let embed = new Discord.EmbedBuilder()
-        .setColor(config.options.embedColor)
-        .setTitle(title)
-        .setDescription(`Started with:  ${escapeDiscordString(game.list[0].full)}\n\n${fields.join('\n')}`)
-        .setThumbnail(guild.iconURL())
-    if (timestamp) {
-        embed.setTimestamp()
-    }
-    if (guild) {
-        embed.setThumbnail(guild.iconURL())
-    }
-    return embed
-}
-
 module.exports = {
-    trackDetailsEmbed,
-    historyEmbed
+    trackDetailsEmbed
 }

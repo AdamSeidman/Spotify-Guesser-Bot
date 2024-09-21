@@ -112,5 +112,6 @@ module.exports = {
                 delete pendingChallenges[x]
             }
         })
-    }
+    },
+    immediate: true
 }

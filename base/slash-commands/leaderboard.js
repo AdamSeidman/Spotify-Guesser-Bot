@@ -143,7 +143,7 @@ const globalServerLeaderboard = async interaction => {
     let valueArray = []
     Object.keys(maxScores).forEach(x => {
         let map = {}
-        map[maxScores[x].name] = maxScores[x].score
+        map[maxScores[x].name] = maxScores[x].score - 1
         valueArray.push(map)
     })
     valueArray.sort((a, b) => {

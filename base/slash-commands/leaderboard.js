@@ -110,7 +110,7 @@ const cachedLeaderboardEmbed = (cachedVal, startVal) => {
     return new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(leaderboardCache[cachedVal].title)
-        .setDescription(desc.length > 0? desc : 'description?')
+        .setDescription(desc.length > 0? desc : ' ')
 }
 
 const userLeaderboard = async (interaction, guildId, title) => {

@@ -7,7 +7,7 @@
 const db = require('../db')
 const Discord = require('discord.js')
 const config = require('../../client/config')
-const { getPercentage } = require('../helpers')
+const { getPercentage, escapeDiscordString } = require('../helpers')
 
 var showUserStats = async function(interaction) {
     let user = {
@@ -105,8 +105,8 @@ var showUserStats = async function(interaction) {
         Score: **${guildCorrect + guildChallenges.success - guildIncorrect - guildChallenges.failure}**`
     let fields = [
         {name: 'Global Stats', value: globalStats, inline: true},
-        {name: `Stats for \`${interaction.guild.name}\``, value: guildStats, inline: true},
-        {name: 'Favorite Song', value: `_${favoriteSong}_`}
+        {name: `Stats for \`${escapeDiscordString(interaction.guild.name)}\``, value: guildStats, inline: true},
+        {name: 'Favorite Song', value: `_${escapeDiscordString(favoriteSong)}_`}
     ]
     let userStatEmbed = new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
@@ -117,7 +117,174 @@ var showUserStats = async function(interaction) {
 }
 
 var showGuildStats = async function(interaction) {
-    interaction.editReply('Not implemented! :)')
+    let max = 0
+    let idx = -1
+    let histories = await db.getAllGuildHistories(interaction.guild.id)
+    histories.forEach((x, i) => {
+        if (x.hist.list.length > max) {
+            max = x.hist.list.length
+            idx = i
+        }
+    })
+    if (idx < 0) {
+        interaction.editReply({ content: 'No games have been played in this server yet!' }) // TODO check if challenges are allowed
+        return
+    }
+    let stats = [`**Longest Chain:** ${histories[idx].hist.list.length} (Round #${idx + 1})`]
+    let challengeResults = await db.getChallengeResultsByGuild(interaction.guild.id)
+    let challengesUserText = ''
+    if (typeof challengeResults === 'object' && Object.keys(challengeResults).length > 0) {
+        let successes = 0
+        let failures = 0
+        let userId = undefined
+        let max = -1
+        Object.keys(challengeResults).forEach(x => {
+            let item = challengeResults[x]
+            if (!isNaN(item.success)) {
+                successes += item.success
+                if (item.success > max) {
+                    userId = x
+                    max = item.success
+                }
+            }
+            if (!isNaN(item.failure)) {
+                failures += item.failure
+            }
+        })
+        if (successes > 0 || failures > 0) {
+            stats.push(`**Successful Challenges:** ${successes}/${successes + failures}`)
+            if (max >= 0) {
+                challengesUserText = `**Most Successful Challenger:** <@${userId}> (${max})`
+            }
+        }
+        else {
+            stats.push('*No challenges in this server yet.*')
+        }
+    }
+    let maxScores = await db.getGuildMaxScores()
+    let valueArray = []
+    Object.keys(maxScores).forEach(x => {
+        let map = {}
+        map[x] = maxScores[x].score - 1
+        valueArray.push({
+            key: x,
+            score: maxScores[x].score - 1
+        })
+    })
+    valueArray.sort((a, b) => {
+        let scoreA = a[Object.keys(a)[0]]
+        let scoreB = b[Object.keys(b)[0]]
+        return scoreB - scoreA
+    })
+    let rank = -2
+    valueArray.find((x, i) => {
+        if (x.key === `#${interaction.guild.id}`) {
+            rank = i
+            return true
+        }
+    })
+    rank++
+    stats.push(`**Global Rank:** #${rank} of ${valueArray.length}`)
+
+    let allGueses = await db.getAllGuessesByGuild(interaction.guild.id)
+    let accuracies = {}
+    allGueses.forEach(guess => {
+        if (accuracies[guess.memberId] === undefined) {
+            accuracies[guess.memberId] = {
+                successes: 0,
+                failures: 0,
+                memberId: guess.memberId
+            }
+        }
+        if (guess.pass) {
+            accuracies[guess.memberId].successes++
+        } else {
+            accuracies[guess.memberId].failures++
+        }
+    })
+    let maxAcc = -1
+    let accKey = -1
+    let maxSuccesses = -1
+    Object.keys(accuracies).forEach(x => {
+        if (accuracies[x].memberId !== undefined) {
+            let accuracy = accuracies[x].successes / (accuracies[x].successes + accuracies[x].failures)
+            if (accuracy > maxAcc || (accuracy == maxAcc && accuracies[x].successes > maxSuccesses)) {
+                maxAcc = accuracy
+                accKey = x
+                maxSuccesses = accuracies[x].successes
+            }
+        }
+    })
+    stats.push(`**Most Accurate Player:** <@${
+        accuracies[accKey].memberId
+    }> - ${
+        getPercentage(accuracies[accKey].successes, (accuracies[accKey].successes + accuracies[accKey].failures))
+    } (${accuracies[accKey].successes}/${
+        (accuracies[accKey].successes + accuracies[accKey].failures)
+    })`)
+    maxSuccesses = -1
+    let maxFailures = -1
+    let biggestLoserId = 0
+    let biggestWinnerId = 0
+    Object.keys(accuracies).forEach(x => {
+        if (accuracies[x].memberId !== undefined) {
+            if (accuracies[x].successes > maxSuccesses) {
+                maxSuccesses = accuracies[x].successes
+                biggestWinnerId = x
+            }
+            if (accuracies[x].failures > maxFailures) {
+                maxFailures = accuracies[x].failures
+                biggestLoserId = x
+            }
+        }
+    })
+    stats.push(`**Most Correct Contributions:** <@${biggestWinnerId}> (${maxSuccesses})`)
+    stats.push(`**Most Incorrect Contributions:** <@${biggestLoserId}> (${maxFailures})`)
+    if (challengesUserText.length > 0) {
+        stats.push(challengesUserText)
+    }
+    
+    let songChoices = {}
+    allGueses.forEach(guess => {
+        if (guess.pass && guess.memberId != undefined) {
+            let key = guess.track.full
+            if (songChoices[key] === undefined) {
+                songChoices[key] = 1
+            } else {
+                songChoices[key]++
+            }
+        }
+    })
+    let songBuf = []
+    Object.keys(songChoices).forEach(x => {
+        songBuf.push({
+            full: x,
+            score: songChoices[x]
+        })
+    })
+    songBuf.sort((a, b) => {
+        return b.score - a.score
+    })
+    if (songBuf.length > config.options.maxGuildFavoriteSongs) {
+        songBuf = songBuf.slice(0, config.options.maxGuildFavoriteSongs)
+    }
+    if (songBuf.length > 0) {
+        let favoriteSongs = ['**Favorite Songs:**']
+        songBuf.forEach(x => {
+            favoriteSongs.push(x.full)
+        })
+        favoriteSongs = favoriteSongs.join('\n')
+        stats.push(favoriteSongs)
+    }
+
+
+    let guildStatEmbed = new Discord.EmbedBuilder()
+        .setColor(config.options.embedColor)
+        .setTitle(`Server Stats for \`${escapeDiscordString(interaction.guild.name)}\``)
+        .setDescription(stats.join('\n'))
+        .setThumbnail(interaction.guild.iconURL())
+        .setTimestamp()
+    interaction.editReply({embeds: [guildStatEmbed]})
 }
 
 const subCommands = {

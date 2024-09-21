@@ -464,18 +464,25 @@ var getAllGuessesByUser = async function(memberId) {
     if (!historiesSetUp) {
         await storePermanentHistories()
     }
+    let curHistories = await getSavedHistories()
+    if (curHistories === undefined) {
+        curHistories = {}
+    }
     return new Promise(resolve => {
         let buf = []
-        Object.keys(permanentHistories).forEach(key => {
-            permanentHistories[key].hist.list.forEach(track => {
+        let goodCheckFn = (list, key) => {
+            list.forEach(track => {
                 if (track.memberId == memberId) {
                     buf.push({
                         pass: true,
-                        track: track,
-                        guildId: permanentHistories[key].hist.key.slice(1)
+                        track,
+                        guildId: key
                     })
                 }
             })
+        }
+        Object.keys(permanentHistories).forEach(key => {
+            goodCheckFn(permanentHistories[key].hist.list, permanentHistories[key].hist.key.slice(1))
             if (permanentHistories[key].ruinedMemberId == memberId) {
                 buf.push({
                     pass: false,
@@ -484,6 +491,48 @@ var getAllGuessesByUser = async function(memberId) {
                 })
             }           
         })
+        Object.keys(curHistories).forEach(key => {
+            goodCheckFn(curHistories[key].list, key.slice(1))
+        })
+        resolve(buf)
+    })
+}
+
+var getAllGuessesByGuild = async function(guildId) {
+    if (!historiesSetUp) {
+        await storePermanentHistories()
+    }
+    let curHistories = await getSavedHistories()
+    let curHistory = []
+    if (curHistories !== undefined && curHistories[`#${guildId}`] !== undefined) {
+        curHistory = curHistories[`#${guildId}`].list
+    }
+    return new Promise(resolve => {
+        let buf = []
+        let goodCheckFn = list => {
+            list.forEach(track => {
+                if (track.memberId != config.botId) {
+                    buf.push({
+                        pass: true,
+                        track,
+                        memberId: track.memberId
+                    })
+                }
+            })
+        }
+        Object.keys(permanentHistories).forEach(x => {
+            if (permanentHistories[x].hist.key.slice(1) == guildId) {
+                goodCheckFn(permanentHistories[x].hist.list)
+                if (permanentHistories[x].ruinedMemberId) {
+                    buf.push({
+                        pass: false,
+                        ruinedReason: permanentHistories[x].ruinedText,
+                        memberId: permanentHistories[x].ruinedMemberId
+                    })
+                }
+            }
+        })
+        goodCheckFn(curHistory)
         resolve(buf)
     })
 }
@@ -607,6 +656,7 @@ module.exports = {
     makeHistoryPermanent,
     getGuildPreviousGames,
     getAllGuessesByUser,
+    getAllGuessesByGuild,
     getChallengeResultsByGuild,
     getChallengeResultsByUser,
     makeChallengeResult,

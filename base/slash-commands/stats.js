@@ -117,50 +117,7 @@ var showUserStats = async function(interaction) {
 }
 
 var showGuildStats = async function(interaction) {
-    let max = 0
-    let idx = -1
-    let histories = await db.getAllGuildHistories(interaction.guild.id)
-    histories.forEach((x, i) => {
-        if (x.hist.list.length > max) {
-            max = x.hist.list.length
-            idx = i
-        }
-    })
-    if (idx < 0) {
-        interaction.editReply({ content: 'No games have been played in this server yet!' }) // TODO check if challenges are allowed
-        return
-    }
-    let stats = [`**Longest Chain:** ${histories[idx].hist.list.length} (Round #${idx + 1})`]
-    let challengeResults = await db.getChallengeResultsByGuild(interaction.guild.id)
-    let challengesUserText = ''
-    if (typeof challengeResults === 'object' && Object.keys(challengeResults).length > 0) {
-        let successes = 0
-        let failures = 0
-        let userId = undefined
-        let max = -1
-        Object.keys(challengeResults).forEach(x => {
-            let item = challengeResults[x]
-            if (!isNaN(item.success)) {
-                successes += item.success
-                if (item.success > max) {
-                    userId = x
-                    max = item.success
-                }
-            }
-            if (!isNaN(item.failure)) {
-                failures += item.failure
-            }
-        })
-        if (successes > 0 || failures > 0) {
-            stats.push(`**Successful Challenges:** ${successes}/${successes + failures}`)
-            if (max >= 0) {
-                challengesUserText = `**Most Successful Challenger:** <@${userId}> (${max})`
-            }
-        }
-        else {
-            stats.push('*No challenges in this server yet.*')
-        }
-    }
+    let fields = []
     let maxScores = await db.getGuildMaxScores()
     let valueArray = []
     Object.keys(maxScores).forEach(x => {
@@ -184,8 +141,60 @@ var showGuildStats = async function(interaction) {
         }
     })
     rank++
-    stats.push(`**Global Rank:** #${rank} of ${valueArray.length}`)
-
+    fields.push({
+        name: 'Global Rank',
+        value: `#${rank} of ${valueArray.length}`,
+        inline: true
+    })
+    let max = 0
+    let idx = -1
+    let histories = await db.getAllGuildHistories(interaction.guild.id)
+    histories.forEach((x, i) => {
+        if (x.hist.list.length > max) {
+            max = x.hist.list.length
+            idx = i
+        }
+    })
+    if (idx < 0) {
+        interaction.editReply({ content: 'No games have been played in this server yet!' }) // TODO check if challenges are allowed
+        return
+    }    
+    fields.push({
+        name: 'Longest Chain',
+        value: `${histories[idx].hist.list.length} (Round #${idx + 1})`,
+        inline: true
+    })
+    let challengeResults = await db.getChallengeResultsByGuild(interaction.guild.id)
+    let challengesUserText = ''
+    if (typeof challengeResults === 'object' && Object.keys(challengeResults).length > 0) {
+        let successes = 0
+        let failures = 0
+        let userId = undefined
+        let max = -1
+        Object.keys(challengeResults).forEach(x => {
+            let item = challengeResults[x]
+            if (!isNaN(item.success)) {
+                successes += item.success
+                if (item.success > max) {
+                    userId = x
+                    max = item.success
+                }
+            }
+            if (!isNaN(item.failure)) {
+                failures += item.failure
+            }
+        })
+        if (successes > 0 || failures > 0) {
+            fields.push({
+                name: 'Challenge Rate',
+                value: `${successes}/${successes + failures}`,
+                inline: true
+            })
+            if (max >= 0) {
+                challengesUserText = `<@${userId}> (${max})`
+            }
+        }
+    }
     let allGueses = await db.getAllGuessesByGuild(interaction.guild.id)
     let accuracies = {}
     allGueses.forEach(guess => {
@@ -215,13 +224,16 @@ var showGuildStats = async function(interaction) {
             }
         }
     })
-    stats.push(`**Most Accurate Player:** <@${
-        accuracies[accKey].memberId
-    }> - ${
-        getPercentage(accuracies[accKey].successes, (accuracies[accKey].successes + accuracies[accKey].failures))
-    } (${accuracies[accKey].successes}/${
-        (accuracies[accKey].successes + accuracies[accKey].failures)
-    })`)
+    fields.push({
+        name: 'Most Accurate Player',
+        value: `<@${
+            accuracies[accKey].memberId
+        }> - ${
+            getPercentage(accuracies[accKey].successes, (accuracies[accKey].successes + accuracies[accKey].failures))
+        } (${accuracies[accKey].successes}/${
+            (accuracies[accKey].successes + accuracies[accKey].failures)
+        })`
+    })
     maxSuccesses = -1
     let maxFailures = -1
     let biggestLoserId = 0
@@ -238,12 +250,20 @@ var showGuildStats = async function(interaction) {
             }
         }
     })
-    stats.push(`**Most Correct Contributions:** <@${biggestWinnerId}> (${maxSuccesses})`)
-    stats.push(`**Most Incorrect Contributions:** <@${biggestLoserId}> (${maxFailures})`)
+    fields.push({
+        name: 'Most Correct Contributions',
+        value: `<@${biggestWinnerId}> (${maxSuccesses})`
+    })
+    fields.push({
+        name: 'Most Incorrect Contributions',
+        value: `<@${biggestLoserId}> (${maxFailures})`
+    })
     if (challengesUserText.length > 0) {
-        stats.push(challengesUserText)
+        fields.push({
+            name: 'Most Successful Challenger',
+            value: challengesUserText
+        })
     }
-    
     let songChoices = {}
     allGueses.forEach(guess => {
         if (guess.pass && guess.memberId != undefined) {
@@ -269,21 +289,21 @@ var showGuildStats = async function(interaction) {
         songBuf = songBuf.slice(0, config.options.maxGuildFavoriteSongs)
     }
     if (songBuf.length > 0) {
-        let favoriteSongs = ['**Favorite Songs:**']
-        songBuf.forEach(x => {
-            favoriteSongs.push(x.full)
+        let favoriteSongs = []
+        songBuf.forEach((x, i) => {
+            favoriteSongs.push(`${i + 1}. ${x.full}`)
         })
-        favoriteSongs = favoriteSongs.join('\n')
-        stats.push(favoriteSongs)
+        fields.push({
+            name: 'Favorite Songs',
+            value: favoriteSongs.join('\n')
+        })
     }
-
-
     let guildStatEmbed = new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(`Server Stats for \`${escapeDiscordString(interaction.guild.name)}\``)
-        .setDescription(stats.join('\n'))
         .setThumbnail(interaction.guild.iconURL())
         .setTimestamp()
+        .addFields(...fields)
     interaction.editReply({embeds: [guildStatEmbed]})
 }
 

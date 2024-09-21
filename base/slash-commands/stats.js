@@ -90,7 +90,9 @@ var showUserStats = async function(interaction) {
     let rules = await db.getServerRules(interaction.guild.id)
     if (rules === undefined || !rules['challenges-allowed']) {
         guildChallengeRateText = ''
-        globalChallengeRateText = ''
+        if (globalChallengeRateText.endsWith('/0')) {
+            globalChallengeRateText = ''
+        }
     }
 
     let globalStats = `Correct: **${globalCorrect}**

@@ -529,6 +529,20 @@ var getAllScores = async function(guildId) {
             }
         }
     })
+    const historyCheckFn = hist => {
+        hist.list.forEach(x => {
+            inc(x.memberId)
+        })
+    }
+    let histories = await getSavedHistories()
+    if (guildId === undefined) {
+        Object.keys(histories).forEach(key => {
+            historyCheckFn(histories[key])
+        })
+    }
+    else if (histories[`#${guildId}`] !== undefined) {
+        historyCheckFn(histories[`#${guildId}`])
+    }
     return playerMap
 }
 
@@ -564,6 +578,19 @@ var getGuildMaxScores = async function() {
         }
         else if (permanentHistories[x].hist.list.length > map[guildKey].score) {
             map[guildKey].score = permanentHistories[x].hist.list.length
+        }
+    })
+    let histories = await getSavedHistories()
+    Object.keys(histories).forEach(key => {
+        if (map[key] === undefined) {
+            map[key] = {
+                key,
+                score: histories[key].list.length,
+                name: histories[key].guildName
+            }
+        }
+        else if (map[key].score < histories[key].list.length) {
+            map[key].score = histories[key].list.length
         }
     })
     return map

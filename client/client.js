@@ -25,7 +25,7 @@ bot.on('ready', async () => {
 })
 
 bot.on('messageCreate', async msg => {
-    if (msg.member === null) {
+    if (msg.member === null && !msg.author.bot) {
         console.log(`DM (${msg.author.username}): ${msg.content}`)
     }
     else if (!msg.author.bot) {

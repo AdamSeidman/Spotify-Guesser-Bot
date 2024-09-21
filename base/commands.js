@@ -34,11 +34,11 @@ const processMessage = async msg => {
         }
         let res = await games.guess(msg, track)
         if (res === undefined) {
-            msg.react('✅')
-            msg.react('🎵')
+            await msg.react('✅')
+            await msg.react('🎵')
         }
         else {
-            msg.react('❌')
+            await msg.react('❌')
             track = await games.createGame(msg)
             msg.reply(`${res[0]} Start again from \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`). ${res[1]}`)
         }

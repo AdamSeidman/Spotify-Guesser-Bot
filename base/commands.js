@@ -77,11 +77,11 @@ const registerSlashCommands = client => {
         }
     })
 
-    const rest = new Discord.REST().setToken(config.token)
+    const rest = new Discord.REST().setToken(config.discord.token)
 
     try {
         console.log(`Refreshing ${commands.length} slash commands.`)
-        rest.put(Discord.Routes.applicationCommands(config.botId), {body: commands})
+        rest.put(Discord.Routes.applicationCommands(config.discord.botId), {body: commands})
     } catch (err) {
         console.error('Could not deploy slash commands!', err)
     }

@@ -82,13 +82,13 @@ var addBotTrack = async function(msg) {
     game.usedTracks.push( getShortName(track) )
     history[game.key].list.push({
         ...track,
-        memberId: config.botId
+        memberId: config.discord.botId
     })
     if (game.usedTracks.length > repeatGuesses) {
         game.usedTracks.shift()
     }
     game.currentTrack = track
-    game.lastMemberId = config.botId
+    game.lastMemberId = config.discord.botId
     game.count = game.count + 1
     await db.updateGame(game)
     await db.updateHistory(history[game.key])

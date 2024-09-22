@@ -523,7 +523,7 @@ var getAllGuessesByGuild = async function(guildId) {
         let buf = []
         let goodCheckFn = list => {
             list.forEach(track => {
-                if (track.memberId != config.botId) {
+                if (track.memberId != config.discord.botId) {
                     buf.push({
                         pass: true,
                         track,
@@ -558,7 +558,7 @@ var getAllScores = async function(guildId) {
     }
     let playerMap = {}
     let inc = playerId => {
-        if (playerId === undefined || playerId == config.botId) return
+        if (playerId === undefined || playerId == config.discord.botId) return
         if (playerMap[`<@${playerId}>`] === undefined) {
             playerMap[`<@${playerId}>`] = 1
         } else {
@@ -566,7 +566,7 @@ var getAllScores = async function(guildId) {
         }
     }
     let dec = playerId => {
-        if (playerId === undefined || playerId == config.botId) return
+        if (playerId === undefined || playerId == config.discord.botId) return
         if (playerMap[`<@${playerId}>`] === undefined) {
             playerMap[`<@${playerId}>`] = -1
         } else {

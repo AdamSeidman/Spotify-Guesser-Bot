@@ -1,28 +1,32 @@
 {
-    "token": "ABCDEF",
-    "botId": "123456",
-    "clientSecret": "123abc",
-    "clientId": "456def",
+    "discord": {
+        "token": "ABCD",
+        "botId": "1234",
+        "intents": [
+            "Guilds",
+            "GuildVoiceStates",
+            "GuildMessages",
+            "DirectMessages",
+            "MessageContent",
+            "GuildScheduledEvents",
+            "GuildMembers"
+        ],
+        "partials": [1]
+    },
+    "spotify": {
+        "refreshToken": "ABCDEFG12345",
+        "clientSecret": "ABC123",
+        "clientId": "ABC123",
+        "credentialUpdateInterval": 1790000
+    },
     "options": {
         "maxSearchPages": 45,
         "embedColor": "#34EB3A",
         "defaultCommandPrefix": "!",
-        "credentialUpdateInterval": 1790000,
         "maxLeaderboardSlots": 20,
-        "maxHistorySlots": 20
+        "maxHistorySlots": 20,
+        "maxGuildFavoriteSongs": 10
     },
-    "intents": [
-        "Guilds",
-        "GuildVoiceStates",
-        "GuildMessages",
-        "DirectMessages",
-        "MessageContent",
-        "GuildScheduledEvents",
-        "GuildMembers"
-    ],
-    "partials": [
-        1
-    ],
     "randomTrackTerms": ["the", "if", "who", "we", "where", "why", "an", "he", "she", "you", "love", "to", "is", "in", 
         "there", "what", "when", "how", "too", "for", "far", "him", "his", "hers", "her", "song"]
 }

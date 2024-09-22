@@ -12,10 +12,10 @@ const game = require('../base/game')
 const reqHandling = require('../base/reqHandling')
 
 const bot = new Discord.Client({
-    intents: config.intents,
-    partials: config.partials
+    intents: config.discord.intents,
+    partials: config.discord.partials
 })
-bot.login(config.token)
+bot.login(config.discord.token)
 
 bot.on('ready', async () => {
     spotify.start()

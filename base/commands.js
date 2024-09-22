@@ -26,7 +26,7 @@ const processMessage = async msg => {
             rules.prefix.toLowerCase()) + rules.prefix.length).trim()
         if (track === undefined || track.length < 1) return
         let trackByArtist = await spotify.getTrackByArtist(track)
-        if (trackByArtist === undefined) {
+        if (trackByArtist === undefined && !rules['artist-required']) {
             track = await spotify.getTrack(track)
         }
         else {

@@ -15,7 +15,7 @@ var pendingChallenges = {}
 
 const getCurrentContext = interaction => {
     let game = games.getGame(interaction.guild.id)
-    if (game === undefined || game.count < 1) return {game}
+    if (game === undefined) return {game}
     return {game, word: strip(game.currentTrack.name.trim().toLowerCase().split(' ').slice(-1)[0])}
 
 }
@@ -23,7 +23,7 @@ const getCurrentContext = interaction => {
 const confirmAction = interaction => {
     let key = `${interaction.guild.id}|${interaction.member.id}`
     let context = getCurrentContext(interaction)
-    if (context.game.count < 1 || pendingChallenges[key] === undefined || pendingChallenges[key] !== context.word) {
+    if (pendingChallenges[key] === undefined || pendingChallenges[key] !== context.word) {
         if (pendingChallenges[key]) {
             delete pendingChallenges[key]
         }
@@ -89,7 +89,7 @@ module.exports = {
         if (game === undefined) {
             interaction.reply({content: 'No game to challenge!', ephemeral: true})
         }
-        else if (game.count < 1) {
+        else if (game.count < 1 && !rules['challenge-first']) {
             interaction.reply({content: 'No guesses have been made on this chain!', ephemeral: true})
         }
         else if (game.lastMemberId == interaction.member.id) {

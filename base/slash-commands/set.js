@@ -148,6 +148,9 @@ module.exports = {
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
             interaction.reply({ content: 'Could not find set sub-command!', ephemeral: true })
         }
-        subCommands[sub](interaction)
-    }
+        else {
+            subCommands[sub](interaction)
+        }
+    },
+    immediate: true
 }

@@ -187,6 +187,7 @@ var changeChannel = async function(msg, channel) {
         msg.reply({content: 'Error! Could not find channel!', ephemeral: true})
     } else if (game) {
         game.channelId = channel.id
+        await db.updateGame(game)
         return false
     }
     else {

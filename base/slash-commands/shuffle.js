@@ -15,11 +15,16 @@ module.exports = {
         .setDescription('Shuffle first word of the game.'),
     execute: async interaction => {
         let rules = await db.getServerRules(interaction.guild.id)
-        if (rules['shuffle-allowed']) {
-            games.shuffle(interaction)
+        try {
+            if (rules['shuffle-allowed']) {
+                games.shuffle(interaction)
+            }
+            else {
+                interaction.reply({ content: 'Shuffling is not allowed on this server.', ephemeral: true })
+            }
         }
-        else {
-            interaction.reply({ content: 'Shuffling is not allowed on this server.', ephemeral: true })
+        catch (err) {
+            console.error('Error shuffling.', err)
         }
     }
 }

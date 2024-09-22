@@ -4,3 +4,4 @@ temp.txt
 scripts/private/
 config.json
 *.log
+token.txt

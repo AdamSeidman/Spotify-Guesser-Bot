@@ -10,9 +10,10 @@ const spotify = require('../spotify')
 const config = require('../../client/config')
 
 const makePlaylist = async interaction => {
-    let num = interaction.options.getInteger('number')
+    let num = interaction.options.getInteger('round')
     if (num === null || num < 1) {
         interaction.reply({content: 'Could not get round!', ephemeral: true})
+        return
     }
     let histories = await db.getAllGuildHistories(interaction.guild.id)
     if (num === histories.length + 1) {
@@ -22,14 +23,23 @@ const makePlaylist = async interaction => {
         interaction.reply({content: `Only ${histories.length} rounds have been played!`, ephemeral: true})
     }
     else if (histories[num - 1].hist.list.length <= config.options.minPlaylistTracks) {
-        interaction.reply({content: `At least ${config.options.minPlaylistTracks} contributions are required to make a playlist.`, ephemeral: true})
+        interaction.reply({content: `At least ${config.options.minPlaylistTracks} contributions are required to make a playlist for any round.`, ephemeral: true})
     }
     else {
         await interaction.deferReply()
+        let key = `${interaction.guild.id}#${num}`
+        let storedPlaylists = await db.getStoredPlaylists()
         try {
-            let title = `${interaction.guild.name} Chain-Round ${num}`
-            let url = await spotify.createPlaylist(title, histories[num - 1].hist.list, interaction.guild.iconURL())
-            interaction.editReply(`Playlist created for round ${num}!\n${url}`)
+            let url = storedPlaylists[key]
+            if (url === undefined) {
+                let title = `${interaction.guild.name} Chain-Round ${num}`
+                url = await spotify.createPlaylist(title, histories[num - 1].hist.list, interaction.guild.iconURL())
+                interaction.editReply(`Playlist created for round ${num}!\n${url}`)
+                db.storePlaylist(key, url)
+            }
+            else {
+                interaction.editReply(`Playlist for round ${num}:\n${url}`)
+            }
         } catch (err) {
             interaction.editReply('Playlist could not be created!')
             console.error('Could not create playlist!', err)
@@ -44,7 +54,7 @@ module.exports = {
         .setDescription('Make a playlist from a completed chain.')
         .addIntegerOption(opt =>
             opt
-                .setName('number')
+                .setName('round')
                 .setDescription('Round number to make playlist of.')
                 .setMinValue(1)
                 .setRequired(true)

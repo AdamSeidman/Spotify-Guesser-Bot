@@ -11,6 +11,7 @@ const config = require('../client/config')
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'
 const serverRulesTable = 'ServerRules'
+const savedPlaylistsTable = 'SavedPlaylists'
 const challengeResultsTable = 'ChallengeResults'
 const savedImmHistoriesTable = 'ImmediateHistories'
 const permanentHistoriesTable = 'PermanentHistories'
@@ -227,6 +228,48 @@ var storeChallengeResults = function() {
         }, () => {
             resolve(challengeResults)
         })
+    })
+}
+
+var playlistsSetUp = false
+var savedPlaylists = {}
+var storePlaylists = function() {
+    if (playlistsSetUp) return
+    playlistsSetUp = true
+    return new Promise((resolve, reject) => {
+        let db = open()
+        db.each(`SELECT * FROM ${savedPlaylistsTable}`, (err, row) => {
+            if (err) {
+                close(db)
+                console.error(err)
+                playlistsSetUp = false
+                reject(new Error('Select Error.'))
+                return
+            }
+            else {
+                savedPlaylists[row.key] = row.url
+            }
+        }, () => {
+            resolve(savedPlaylists)
+        })
+    })
+}
+
+var getStoredPlaylists = async function() {
+    await storePlaylists()
+    return savedPlaylists
+}
+
+var storePlaylist = async function(key, url) {
+    if (typeof key !== 'string' || typeof url !== 'string' || savedPlaylists[key] !== undefined) return
+    await storePlaylists()
+    savedPlaylists[key] = url
+    let db = open()
+    db.run(`INSERT INTO ${savedPlaylistsTable} (key, url) VALUES (?, ?)`, [key, url], err => {
+        db.close()
+        if (err) {
+            console.error(err)
+        }
     })
 }
 
@@ -680,5 +723,7 @@ module.exports = {
     setServerPrefix,
     getAllGuildHistories,
     getGuildMaxScores,
-    getAllScores
+    getAllScores,
+    getStoredPlaylists,
+    storePlaylist
 }

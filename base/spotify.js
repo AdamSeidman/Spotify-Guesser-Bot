@@ -4,11 +4,14 @@
  * Author: Adam Seidman
  */
 
+const fs = require('fs')
 const config = require('../client/config')
 const { randomArrayItem, strip } = require('./helpers')
 const SpotifyWebApi = require('spotify-web-api-node')
 
 var spotifyApi = undefined
+var accessToken = ''
+const ACCESS_TOKEN_FILE = 'client/token.txt'
 
 const makeTrack = rawTrack => {
     if (rawTrack === undefined || rawTrack.artists === undefined) return
@@ -26,27 +29,39 @@ const makeTrack = rawTrack => {
     }
 }
 
-const setTokens = tokens => {
-    spotifyApi.setAccessToken(tokens['access_token'])
-    spotifyApi.setRefreshToken(tokens['refresh_token'])
+const refreshSpotifyToken = () => {
+    if (spotifyApi === undefined) return
+    spotifyApi.refreshAccessToken().then(
+        data => {
+            spotifyApi.setAccessToken(data.body['access_token'])
+            fs.writeFile(ACCESS_TOKEN_FILE, data.body['access_token'], err => {
+                if (err) throw err
+            })
+        },
+        err => {
+            console.error('Could not refresh access token')
+            throw err
+        })
 }
 
-const requestTokens = async () => {
-    setTokens((await spotifyApi.clientCredentialsGrant()).body)
-}
-
-const start = () => {
+const start = async () => {
     if (spotifyApi !== undefined) {
         console.error('Tried to regenerate spotify API!')
         return
     }
     spotifyApi = new SpotifyWebApi({
-        clientId: config.clientId,
-        clientSecret: config.clientSecret
+        clientId: config.spotify.clientId,
+        clientSecret: config.spotify.clientSecret
     })
-
-    requestTokens()
-    setInterval(requestTokens, config.options.credentialUpdateInterval)
+    await spotifyApi.clientCredentialsGrant()
+    fs.readFile(ACCESS_TOKEN_FILE, 'ascii', (err, data) => {
+        if (err) throw err
+        accessToken = data
+        spotifyApi.setAccessToken(accessToken)
+        spotifyApi.setRefreshToken(config.spotify.refreshToken)
+        refreshSpotifyToken()
+    })
+    setInterval(refreshSpotifyToken, config.spotify.credentialUpdateInterval)
 }
 
 const getAllTracks = searchTerm => {
@@ -74,6 +89,49 @@ const getAllTracks = searchTerm => {
                 }
             }
             spotifyApi.searchTracks(searchTerm).then(callback, reject)
+        }
+    })
+}
+
+const createPlaylist = (title, list, uri) => {
+    if (title === undefined || typeof title !== 'string' || list === undefined || spotifyApi === undefined) return
+    if (uri !== undefined && typeof uri !== 'string') return
+    let playlistId = undefined
+    return new Promise((resolve, reject) => {
+        try {
+            spotifyApi.createPlaylist(title, {
+                description: 'Created automatically by Song-Chains. See https://github.com/AdamSeidman/Spotify-Guesser-Bot for more info',
+                collaborative : false,
+                public: true
+            }).then(data => {
+                playlistId = data.body.id
+                return spotifyApi.addTracksToPlaylist( data.body.id, list.map(x => `spotify:track:${x.url.slice(x.url.lastIndexOf('/') + 1)}`) )
+            }).then(() => {
+                if (uri === undefined) {
+                    resolve(`https://open.spotify.com/playlist/${playlistId}`)
+                    return
+                }
+                var request = require('request').defaults({ encoding: null })
+                uri = uri.split('.')
+                uri[uri.length - 1] = 'png'
+                request.get(uri.join('.'), (error, response, body) => {
+                    if (!error && response.statusCode == 200) {
+                        let base64Uri = Buffer.from(body).toString('base64')
+                        spotifyApi.uploadCustomPlaylistCoverImage(playlistId, base64Uri).then(() => {
+                            resolve(`https://open.spotify.com/playlist/${playlistId}`)
+                        }).catch(reject)
+                    }
+                    else if (error) {
+                        reject(error)
+                    } else {
+                        reject(response.statusCode)
+                    }
+                })
+            }).catch(reject)
+        }
+        catch (err) {
+            console.error(err)
+            resolve()
         }
     })
 }
@@ -239,5 +297,6 @@ module.exports = {
     getTrack,
     getTrackByArtist,
     getRandomTrack,
-    getFirstTrack
+    getFirstTrack,
+    createPlaylist
 }

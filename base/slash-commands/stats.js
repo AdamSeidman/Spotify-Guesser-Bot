@@ -7,7 +7,7 @@
 const db = require('../db')
 const Discord = require('discord.js')
 const config = require('../../client/config')
-const { getPercentage, escapeDiscordString } = require('../helpers')
+const { getPercentage, escapeDiscordString, hideOption, getHideResult } = require('../helpers')
 
 var showUserStats = async function(interaction) {
     let user = {
@@ -321,6 +321,7 @@ module.exports = {
             subcommand
                 .setName('user')
                 .setDescription('Show user statistics.')
+                .addStringOption(hideOption)
                 .addUserOption(option => 
                     option
                         .setName('user')
@@ -332,13 +333,14 @@ module.exports = {
             subcommand
                 .setName('server')
                 .setDescription('Show server statistics.')
+                .addStringOption(hideOption)
         ),
     execute: async interaction => {
         let sub = interaction.options.getSubcommand()
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
             interaction.reply({ content: 'Could not find stats sub-command!', ephemeral: true })
         }
-        await interaction.deferReply()
+        await interaction.deferReply({ ephemeral: getHideResult(interaction) })
         subCommands[sub](interaction)
     },
     immediate: true

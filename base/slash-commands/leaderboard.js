@@ -7,7 +7,7 @@
 const db = require('../db')
 const Discord = require('discord.js')
 const config = require('../../client/config')
-const { getActionRow, copyObject, escapeDiscordString } = require('../helpers')
+const { getActionRow, copyObject, escapeDiscordString, hideOption, getHideResult } = require('../helpers')
 
 const leaderboardCache = []
 
@@ -224,23 +224,26 @@ module.exports = {
             subcommand
                 .setName('server')
                 .setDescription('Show server leaderboard.')
+                .addStringOption(hideOption)
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName('global-users')
                 .setDescription('Show global statistics by user.')
+                .addStringOption(hideOption)
         )
         .addSubcommand(subcommand => 
             subcommand
                 .setName('global-servers')
                 .setDescription('Show global statistics by server.')
+                .addStringOption(hideOption)
         ),
     execute: async interaction => {
         let sub = interaction.options.getSubcommand()
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
             interaction.reply({ content: 'Could not find stats sub-command!', ephemeral: true })
         }
-        await interaction.deferReply()
+        await interaction.deferReply({ ephemeral: getHideResult(interaction) })
         subCommands[sub](interaction)
     },
     btnActionHandler: async interaction => {

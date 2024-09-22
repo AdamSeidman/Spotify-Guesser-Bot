@@ -41,6 +41,10 @@ const showRules = async (interaction, hide) => {
             rules['single-words-allowed']
         }\`\n  Challenges Allowed:  \`${
             rules['challenges-allowed']
+        }\`\n  Shuffle Allowed:  \`${
+            rules['shuffle-allowed']
+        }\`\n  Challenge First Song Allowed:  \`${
+            rules['challenge-first']
         }\``, ephemeral: hide})
     }
     else {

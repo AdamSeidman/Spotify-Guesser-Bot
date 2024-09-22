@@ -35,11 +35,25 @@ const setChallenges = async interaction => {
     interaction.reply(`Song challenges now set to \`${allowed? 'enabled' : 'disabled'}\`.`)
 }
 
+const setShuffle = async interaction => {
+    let allowed = interaction.options.getBoolean('allowed')
+    await db.setShuffleAllowed(interaction.guild.id, allowed)
+    interaction.reply(`Shuffle command now set to \`${allowed? 'enabled' : 'disabled'}\`.`)
+}
+
+const setChallengeFirst = async interaction => {
+    let allowed = interaction.options.getBoolean('allowed')
+    await db.setChallengeFirstAllowed(interaction.guild.id, allowed)
+    interaction.reply(`Challenging first song now set to \`${allowed? 'enabled' : 'disabled'}\`.`)
+}
+
 const subCommands = {
     channel: setChannel,
     prefix: setPrefix,
     'single-words-allowed': setSingleWords,
-    'challenges-allowed': setChallenges
+    'challenges-allowed': setChallenges,
+    'shuffle-allowed': setShuffle,
+    'challenge-first': setChallengeFirst
 }
 
 module.exports = {
@@ -85,6 +99,26 @@ module.exports = {
                 .addBooleanOption(option =>
                     option.setName('allowed')
                         .setDescription('Are challenges allowed?')
+                        .setRequired(true)
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('shuffle-allowed')
+                .setDescription('Set whether or not first song of chain can be shuffled.')
+                .addBooleanOption(option =>
+                    option.setName('allowed')
+                        .setDescription('Is shuffle allowed?')
+                        .setRequired(true)
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('challenge-first')
+                .setDescription('Set whether or not challenging the first song of a chain is allowed.')
+                .addBooleanOption(option =>
+                    option.setName('allowed')
+                        .setDescription('Can the first song be challenged?')
                         .setRequired(true)
                 )
         ),

@@ -4,6 +4,7 @@
  * Author: Adam Seidman
  */
 
+const db = require('../db')
 const games = require('../game')
 const Discord = require('discord.js')
 
@@ -12,5 +13,13 @@ module.exports = {
     data: new Discord.SlashCommandBuilder()
         .setName('shuffle')
         .setDescription('Shuffle first word of the game.'),
-    execute: interaction => games.shuffle(interaction)
+    execute: async interaction => {
+        let rules = await db.getServerRules(interaction.guild.id)
+        if (rules['shuffle-allowed']) {
+            games.shuffle(interaction)
+        }
+        else {
+            interaction.reply({ content: 'Shuffling is not allowed on this server.', ephemeral: true })
+        }
+    }
 }

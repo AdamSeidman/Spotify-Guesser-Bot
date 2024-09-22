@@ -278,7 +278,9 @@ var getServerRules = async function(guildId) {
                 key,
                 prefix: '!',
                 'challenges-allowed': true,
-                'single-words-allowed': false
+                'single-words-allowed': true,
+                'shuffle-allowed': true,
+                'challenge-first': false
             }
             let db = open()
             db.run(`INSERT INTO ${serverRulesTable} (key, data) VALUES (?, ?)`, [key, JSON.stringify(serverRules[key])], err => {
@@ -324,6 +326,16 @@ var setServerRuleById = async function(guildId, id, value) {
 var setChallengesAllowed = async function(guildId, allowed) {
     if (guildId === undefined || allowed === undefined) return
     await setServerRuleById(guildId, 'challenges-allowed', allowed)
+}
+
+var setShuffleAllowed = async function(guildId, allowed) {
+    if (guildId === undefined || allowed === undefined) return
+    await setServerRuleById(guildId, 'shuffle-allowed', allowed)
+}
+
+var setChallengeFirstAllowed = async function(guildId, allowed) {
+    if (guildId === undefined || allowed === undefined) return
+    await setServerRuleById(guildId, 'challenge-first', allowed)
 }
 
 var setSingleWordsAllowed = async function(guildId, allowed) {
@@ -662,6 +674,8 @@ module.exports = {
     makeChallengeResult,
     getServerRules,
     setChallengesAllowed,
+    setShuffleAllowed,
+    setChallengeFirstAllowed,
     setSingleWordsAllowed,
     setServerPrefix,
     getAllGuildHistories,

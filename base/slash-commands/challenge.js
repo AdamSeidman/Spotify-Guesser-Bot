@@ -12,6 +12,7 @@ const { getActionRow, strip } = require('../helpers')
 const { trackDetailsEmbed } = require('../embedBuilder')
 
 var pendingChallenges = {}
+var challengeSemaphores = []
 
 const getCurrentContext = interaction => {
     let game = games.getGame(interaction.guild.id)
@@ -23,13 +24,14 @@ const getCurrentContext = interaction => {
 const confirmAction = interaction => {
     let key = `${interaction.guild.id}|${interaction.member.id}`
     let context = getCurrentContext(interaction)
-    if (pendingChallenges[key] === undefined || pendingChallenges[key] !== context.word) {
+    if (pendingChallenges[key] === undefined || pendingChallenges[key] !== context.word || challengeSemaphores.includes(`#${interaction.guild.id}`)) {
         if (pendingChallenges[key]) {
             delete pendingChallenges[key]
         }
         interaction.update({content: 'This challenge is no longer valid.', components: []})
     }
     else {
+        challengeSemaphores.push(`#${interaction.guild.id}`)
         interaction.update({content: 'Challenge Submitted!', components: []})
         interaction.channel.send(`<@${interaction.member.id}> issued a challenge against \`${context.game.currentTrack.name}\`!`)
         spotify.getFirstTrack(context.word, context.game.usedTracks).then(async track => {
@@ -46,11 +48,19 @@ const confirmAction = interaction => {
                     track.name.toLowerCase().split(' ').slice(-1)[0]
                 }\`)`)
             }
+            let index = challengeSemaphores.indexOf(`#${interaction.guild.id}`)
+            if (index !== -1) {
+                challengeSemaphores.splice(index, 1)
+            }
         })
     }
 }
 
 const cancelAction = interaction => {
+    let key = `${interaction.guild.id}|${interaction.member.id}`
+    if (pendingChallenges[key] !== undefined) {
+        delete pendingChallenges[key]
+    }
     interaction.update({content: 'Challenge Cancelled.', components: []})
 }
 

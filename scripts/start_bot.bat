@@ -8,6 +8,9 @@ IF NOT "%titlequery%" == "INFO: No tasks are running which match the specified c
 
 :CreateBot
 ECHO.
+ECHO Pulling new changes...
+GIT pull
+ECHO.
 ECHO Initializing...
 ECHO.
 TITLE Spotify Guesser Bot

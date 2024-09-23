@@ -82,6 +82,7 @@ const getHistoryButtons = (idx, startVal) => {
 }
 
 const newHistoryEmbed = (title, history, userId, thumbnail, isCurrent) => {
+    history = copyObject(history)
     let firstLine = `Started with: ${escapeDiscordString(history.hist.list.shift().full)}\n`
     let values = []
     history.hist.list.forEach((track, idx) => {

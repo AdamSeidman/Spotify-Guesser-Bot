@@ -10,6 +10,7 @@ const path = require('path')
 const games = require('./game')
 const spotify = require('./spotify')
 const Discord = require('discord.js')
+const { strip } = require('./helpers')
 const config = require('../client/config')
 const reqHandling = require('./reqHandling')
 const log = require('better-node-file-logger')
@@ -37,6 +38,11 @@ const processMessage = async msg => {
         if (res === undefined) {
             await msg.react('✅')
             await msg.react('🎵')
+            if (msg.content.includes('-') && reqHandling.peekLength(msg.guild.id) === 1) {
+                msg.channel.send(`The next word is \`${
+                    strip(track.name.split(' ').slice(-1)[0].toLowerCase())
+                }\`.`)
+            }
         }
         else {
             await msg.react('❌')

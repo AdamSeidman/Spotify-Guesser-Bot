@@ -1,7 +1,7 @@
 @ECHO OFF
 CD ..
 
-IF EXIST tempt.txt DEL /F tempt.txt
+IF EXIST temp.txt DEL /F temp.txt
 TASKLIST /NH /FI "WINDOWTITLE EQ Spotify Guesser Bot" > temp.txt
 SET /P titlequery=<temp.txt
 IF NOT "%titlequery%" == "INFO: No tasks are running which match the specified criteria." (GOTO HasInst)

@@ -7,6 +7,7 @@
 const db = require('../db')
 const games = require('../game')
 const Discord = require('discord.js')
+const log = require('better-node-file-logger')
 const { hideOption, getHideResult, strip } = require('../helpers')
 
 const getNextWord = (interaction, hide) => {
@@ -50,6 +51,7 @@ const showRules = async (interaction, hide) => {
         }\``, ephemeral: hide})
     }
     else {
+        log.warning('Could not get server rules!', interaction.guild.id)
         interaction.reply({content: 'Error. Could not find server rules!', ephemeral: true})
     }
 }
@@ -86,6 +88,7 @@ module.exports = {
     execute: async interaction => {
         let sub = interaction.options.getSubcommand()
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
+            log.warning('Got unknown sub-command!')
             interaction.reply({ content: 'Could not find info sub-command!', ephemeral: true })
         }
         subCommands[sub](interaction, getHideResult(interaction))

@@ -7,6 +7,7 @@
 const db = require('../db')
 const Discord = require('discord.js')
 const config = require('../../client/config')
+const log = require('better-node-file-logger')
 const { getPercentage, escapeDiscordString, hideOption, getHideResult } = require('../helpers')
 
 var showUserStats = async function(interaction) {
@@ -338,6 +339,7 @@ module.exports = {
     execute: async interaction => {
         let sub = interaction.options.getSubcommand()
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
+            log.warning('No subcommand in stats execute', sub)
             interaction.reply({ content: 'Could not find stats sub-command!', ephemeral: true })
         }
         await interaction.deferReply({ ephemeral: getHideResult(interaction) })

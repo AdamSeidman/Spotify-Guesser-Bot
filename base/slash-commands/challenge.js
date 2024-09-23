@@ -8,6 +8,7 @@ const db = require('../db')
 const games = require('../game')
 const spotify = require('../spotify')
 const Discord = require('discord.js')
+const log = require('better-node-file-logger')
 const { getActionRow, strip } = require('../helpers')
 const { trackDetailsEmbed } = require('../embedBuilder')
 
@@ -18,7 +19,6 @@ const getCurrentContext = interaction => {
     let game = games.getGame(interaction.guild.id)
     if (game === undefined) return {game}
     return {game, word: strip(game.currentTrack.name.trim().toLowerCase().split(' ').slice(-1)[0])}
-
 }
 
 const confirmAction = interaction => {
@@ -29,6 +29,7 @@ const confirmAction = interaction => {
             delete pendingChallenges[key]
         }
         interaction.update({content: 'This challenge is no longer valid.', components: []})
+        log.warning('Invalid challenge')
     }
     else {
         challengeSemaphores.push(`#${interaction.guild.id}`)
@@ -88,7 +89,7 @@ module.exports = {
     execute: async interaction => {
         let rules = await db.getServerRules(interaction.guild.id)
         if (rules === undefined) {
-            console.error('Unknown error?')
+            log.error('Unknown error? Rules undefined.')
             return
         }
         else if (!rules['challenges-allowed']) {

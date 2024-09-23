@@ -7,6 +7,7 @@
 const sqlite3 = require('sqlite3').verbose()
 const { copyObject } = require('./helpers')
 const config = require('../client/config')
+const log = require('better-node-file-logger')
 
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'
@@ -33,7 +34,7 @@ var getSavedGames = function() {
         db.each(`SELECT * FROM ${savedGamesTable}`, (err, row) => {
             if (err) {
                 close(db)
-                console.error(err)
+                log.error('Select Error', err)
                 reject(new Error('Select Error.'))
                 return
             }
@@ -43,7 +44,7 @@ var getSavedGames = function() {
                 }
                 catch (err) {
                     close(db)
-                    console.error(err)
+                    log.error('Parse Error', err)
                     reject(new Error('Parse Error.'))
                     return
                 }
@@ -62,7 +63,7 @@ var getSavedHistories = function() {
         db.each(`SELECT * FROM ${savedImmHistoriesTable}`, (err, row) => {
             if (err) {
                 close(db)
-                console.error(err)
+                log.error('Select Error', err)
                 reject(new Error('Select Error.'))
                 return
             }
@@ -72,7 +73,7 @@ var getSavedHistories = function() {
                 }
                 catch (err) {
                     close(db)
-                    console.error(err)
+                    log.error('Parse Error', err)
                     reject(new Error('Parse Error.'))
                     return
                 }
@@ -90,7 +91,7 @@ var createGame = function(game) {
         db.run(`INSERT INTO ${savedGamesTable} (key, map) VALUES (?, ?)`, [game.key, JSON.stringify(game)], err => {
             db.close()
             if (err) {
-                console.error(err)
+                log.error('Insert Error', err)
                 reject(new Error('Insert Error.'))
             }
             else {
@@ -106,7 +107,7 @@ var createHistory = function(history) {
         db.run(`INSERT INTO ${savedImmHistoriesTable} (key, map) VALUES (?, ?)`, [history.key, JSON.stringify(history)], err => {
             db.close()
             if (err) {
-                console.error(err)
+                log.error('Insert Error', err)
                 reject(new Error('Insert Error.'))
             }
             else {
@@ -122,7 +123,7 @@ var updateGame = function(game) {
         db.run(`UPDATE ${savedGamesTable} SET map=(?) WHERE key='${game.key}'`, [JSON.stringify(game)], err => {
             db.close()
             if (err) {
-                console.error(err)
+                log.error('Update Error', err)
                 reject(new Error('Update Error.'))
             }
             else {
@@ -138,7 +139,7 @@ var updateHistory = function(history) {
         db.run(`UPDATE ${savedImmHistoriesTable} SET map=(?) WHERE key='${history.key}'`, [JSON.stringify(history)], err => {
             db.close()
             if (err) {
-                console.error(err)
+                log.error('Update Error', err)
                 reject(new Error('Update Error.'))
             }
             else {
@@ -154,7 +155,7 @@ var deleteGame = function(game) {
         db.run(`DELETE FROM ${savedGamesTable} WHERE key='${game.key}'`, [], err => {
             db.close()
             if (err) {
-                console.error(err)
+                log.error('Delete Error', err)
                 reject(new Error('Delete Error.'))
             }
             else {
@@ -174,7 +175,7 @@ var storePermanentHistories = function() {
         db.each(`SELECT * FROM ${permanentHistoriesTable}`, (err, row) => {
             if (err) {
                 close(db)
-                console.error(err)
+                log.error('Select Error', err)
                 historiesSetUp = false
                 reject(new Error('Select Error.'))
                 return
@@ -185,7 +186,7 @@ var storePermanentHistories = function() {
                 }
                 catch (err) {
                     close(db)
-                    console.error(err)
+                    log.error('Parse Error.', err)
                     historiesSetUp = false
                     reject(new Error('Parse Error.'))
                     return
@@ -208,7 +209,7 @@ var storeChallengeResults = function() {
         db.each(`SELECT * FROM ${challengeResultsTable}`, (err, row) => {
             if (err) {
                 close(db)
-                console.error(err)
+                log.error('Select Error.', err)
                 challengesSetUp = false
                 reject(new Error('Select Error.'))
                 return
@@ -219,7 +220,7 @@ var storeChallengeResults = function() {
                 }
                 catch (err) {
                     close(db)
-                    console.error(err)
+                    log.error('Parse Error.', err)
                     challengesSetUp = false
                     reject(new Error('Parse Error.'))
                     return
@@ -241,7 +242,7 @@ var storePlaylists = function() {
         db.each(`SELECT * FROM ${savedPlaylistsTable}`, (err, row) => {
             if (err) {
                 close(db)
-                console.error(err)
+                log.error('Select Error.', err)
                 playlistsSetUp = false
                 reject(new Error('Select Error.'))
                 return
@@ -268,7 +269,7 @@ var storePlaylist = async function(key, url) {
     db.run(`INSERT INTO ${savedPlaylistsTable} (key, url) VALUES (?, ?)`, [key, url], err => {
         db.close()
         if (err) {
-            console.error(err)
+            log.error(err)
         }
     })
 }
@@ -283,7 +284,7 @@ var storeServerRules = function() {
         db.each(`SELECT * FROM ${serverRulesTable}`, (err, row) => {
             if (err) {
                 close(db)
-                console.error(err)
+                log.error('Select Error.', err)
                 serverRulesSetUp = false
                 reject(new Error('Select Error.'))
                 return
@@ -294,7 +295,7 @@ var storeServerRules = function() {
                 }
                 catch (err) {
                     close(db)
-                    console.error(err)
+                    log.error('Parse Error.', err)
                     serverRulesSetUp = false
                     reject(new Error('Parse Error.'))
                     return
@@ -330,7 +331,7 @@ var getServerRules = async function(guildId) {
             db.run(`INSERT INTO ${serverRulesTable} (key, data) VALUES (?, ?)`, [key, JSON.stringify(serverRules[key])], err => {
                 db.close()
                 if (err) {
-                    console.error(err)
+                    log.error(err)
                     reject()
                 }
                 else {
@@ -356,7 +357,7 @@ var setServerRuleById = async function(guildId, id, value) {
             db.run(`UPDATE ${serverRulesTable} SET data=(?) WHERE key='${key}'`, [JSON.stringify(serverRules[key])], err => {
                 db.close()
                 if (err) {
-                    console.error(err)
+                    log.error(err)
                     reject(err)
                 }
                 else {
@@ -475,7 +476,7 @@ var makeChallengeResult = async function(guildId, userId, pass) {
         db.run(`INSERT INTO ${challengeResultsTable} (key, data) VALUES (?, ?)`, [data.key, JSON.stringify(data)], err => {
             db.close()
             if (err) {
-                console.error(err)
+                log.error('Insert Error', err)
                 reject(new Error('Insert Error.'))
             }
             else {
@@ -501,7 +502,7 @@ var makeHistoryPermanent = async function(history, memberId, ruinedReason) {
         db.run(`INSERT INTO ${permanentHistoriesTable} (key, map) VALUES (?, ?)`, [map.key, JSON.stringify(map)], err => {
             if (err) {
                 db.close()
-                console.error(err)
+                log.error('Insert Error', err)
                 reject(new Error('Insert Error.'))
                 return
             }
@@ -509,7 +510,7 @@ var makeHistoryPermanent = async function(history, memberId, ruinedReason) {
                 db.run(`DELETE FROM ${savedImmHistoriesTable} WHERE key='${history.key}'`, [], err => {
                     db.close()
                     if (err) {
-                        console.error(err)
+                        log.error('Delete Error', err)
                         reject(new Error('Delete Error.'))
                     }
                     else {

@@ -8,6 +8,7 @@ const db = require('../db')
 const Discord = require('discord.js')
 const spotify = require('../spotify')
 const config = require('../../client/config')
+const log = require('better-node-file-logger')
 
 const makePlaylist = async interaction => {
     let num = interaction.options.getInteger('round')
@@ -35,6 +36,7 @@ const makePlaylist = async interaction => {
                 let title = `${interaction.guild.name} Chain-Round ${num}`
                 url = await spotify.createPlaylist(title, histories[num - 1].hist.list, interaction.guild.iconURL())
                 interaction.editReply(`Playlist created for round ${num}!\n${url}`)
+                log.info('Playlist create!', title)
                 db.storePlaylist(key, url)
             }
             else {
@@ -42,7 +44,7 @@ const makePlaylist = async interaction => {
             }
         } catch (err) {
             interaction.editReply('Playlist could not be created!')
-            console.error('Could not create playlist!', err)
+            log.error('Could not create playlist', err)
         }
     }
 }

@@ -9,6 +9,7 @@
   "author": "Adam Seidman",
   "license": "MIT",
   "dependencies": {
+    "better-node-file-logger": "^1.0.4",
     "discord.js": "^14.10.2",
     "poop-sock": "^1.0.7",
     "request": "^2.88.2",

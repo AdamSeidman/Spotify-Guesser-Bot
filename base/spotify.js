@@ -8,6 +8,7 @@ const fs = require('fs')
 const config = require('../client/config')
 const { randomArrayItem, strip } = require('./helpers')
 const SpotifyWebApi = require('spotify-web-api-node')
+const log = require('better-node-file-logger')
 
 var spotifyApi = undefined
 var accessToken = ''
@@ -39,14 +40,14 @@ const refreshSpotifyToken = () => {
             })
         },
         err => {
-            console.error('Could not refresh access token')
+            log.error('Could not refresh access token')
             throw err
         })
 }
 
 const start = async () => {
     if (spotifyApi !== undefined) {
-        console.error('Tried to regenerate spotify API!')
+        log.error('Tried to regenerate spotify API!')
         return
     }
     spotifyApi = new SpotifyWebApi({
@@ -130,7 +131,7 @@ const createPlaylist = (title, list, uri) => {
             }).catch(reject)
         }
         catch (err) {
-            console.error(err)
+            log.error(err)
             resolve()
         }
     })
@@ -252,7 +253,7 @@ const getRandomTrack = async () => {
         }
         catch (err) {
             track = undefined
-            console.error(err)
+            log.error(err)
         }
     }
     return track

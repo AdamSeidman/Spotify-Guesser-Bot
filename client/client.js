@@ -5,10 +5,11 @@
  */
 
 const config = require('./config')
+const game = require('../base/game')
 const Discord = require('discord.js')
 const spotify = require('../base/spotify')
 const commands = require('../base/commands')
-const game = require('../base/game')
+const log = require('better-node-file-logger')
 const reqHandling = require('../base/reqHandling')
 
 const bot = new Discord.Client({
@@ -18,15 +19,16 @@ const bot = new Discord.Client({
 bot.login(config.discord.token)
 
 bot.on('ready', async () => {
+    log.quickInit('SGB_')
     spotify.start()
     await commands.registerSlashCommands(bot)
     await game.initGames()
-    console.log('Bot Initialized.')
+    log.info('Bot Initialized.')
 })
 
 bot.on('messageCreate', async msg => {
     if (msg.member === null && !msg.author.bot) {
-        console.log(`DM (${msg.author.username}): ${msg.content}`)
+        log.info(`DM (${msg.author.username}): ${msg.content}`)
     }
     else if (!msg.author.bot) {
         reqHandling.enqueueRequest(msg.guild.id, commands.processMessage, msg)
@@ -45,4 +47,4 @@ bot.on('interactionCreate', interaction => {
     }
 })
 
-bot.on('error', console.error)
+bot.on('error', log.error)

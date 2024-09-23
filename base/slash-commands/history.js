@@ -8,6 +8,7 @@ const db = require('../db')
 const games = require('../game')
 const Discord = require('discord.js')
 const config = require('../../client/config')
+const log = require('better-node-file-logger')
 const { hideOption, getHideResult, escapeDiscordString, getActionRow, copyObject } = require('../helpers')
 
 const historyCache = []
@@ -300,6 +301,7 @@ module.exports = {
     },
     btnActionHandler: async interaction => {
         if ( typeof interaction.customId !== 'string' ) {
+            log.error('No string args in history handler!')
             interaction.reply({ content: 'Internal Error!', ephemeral: true })
             return
         }

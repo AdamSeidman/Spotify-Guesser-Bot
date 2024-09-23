@@ -7,6 +7,7 @@
 const db = require('../db')
 const games = require('../game')
 const Discord = require('discord.js')
+const log = require('better-node-file-logger')
 
 module.exports = {
     phrase: 'shuffle',
@@ -24,7 +25,7 @@ module.exports = {
             }
         }
         catch (err) {
-            console.error('Error shuffling.', err)
+            log.error('Error shuffling.', err)
         }
     }
 }

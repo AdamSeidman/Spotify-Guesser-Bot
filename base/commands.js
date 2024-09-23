@@ -12,6 +12,7 @@ const spotify = require('./spotify')
 const Discord = require('discord.js')
 const config = require('../client/config')
 const reqHandling = require('./reqHandling')
+const log = require('better-node-file-logger')
 
 const CMD_DIR = 'slash-commands'
 var buttonHooks = {}
@@ -47,7 +48,7 @@ const processMessage = async msg => {
 
 const registerSlashCommands = client => {
     if (client === undefined) {
-        console.error('No client in registerSlashCommands!')
+        log.error('No client in registerSlashCommands!')
         return
     }
 
@@ -80,19 +81,18 @@ const registerSlashCommands = client => {
     const rest = new Discord.REST().setToken(config.discord.token)
 
     try {
-        console.log(`Refreshing ${commands.length} slash commands.`)
+        log.info(`Refreshing ${commands.length} slash commands.`)
         rest.put(Discord.Routes.applicationCommands(config.discord.botId), {body: commands})
     } catch (err) {
-        console.error('Could not deploy slash commands!', err)
+        log.error('Could not deploy slash commands', err)
     }
-    console.log('Finished reloading slash commands.')
 }
 
 const queuedCommand = async interaction => {
     try {
         interaction.client.commands.get(interaction.commandName).execute(interaction)
     } catch (err) {
-        console.error('Error executing command interaction!', err)
+        log.error('Error executing command interaction!', err)
         interaction.reply({content: 'Could not execute command!', ephemeral: true})
     }
 }
@@ -101,7 +101,7 @@ const handleSlashCommand = async interaction => {
     const command = interaction.client.commands.get(interaction.commandName)
 
     if (!command) {
-        console.error(`Requested slash command not found: ${command}`)
+        log.error(`Requested slash command not found: ${command}`, `${interaction.guild.name}-${interaction.member.name}`)
         interaction.reply({content: 'Internal Error! Command not found.', ephemeral: true})
         return
     }
@@ -129,6 +129,7 @@ const handleButtonPress = async interaction => {
     }
     else {
         interaction.reply({content: 'Could not complete button press request!', ephemeral: true})
+        log.error('Could not complete button press.')
     }
 }
 

@@ -7,6 +7,7 @@
 const db = require('../db')
 const Discord = require('discord.js')
 const config = require('../../client/config')
+const log = require('better-node-file-logger')
 const { getActionRow, copyObject, escapeDiscordString, hideOption, getHideResult } = require('../helpers')
 
 const leaderboardCache = []
@@ -248,6 +249,7 @@ module.exports = {
     },
     btnActionHandler: async interaction => {
         if ( typeof interaction.customId !== 'string' ) {
+            log.error('No string args in handler!')
             interaction.reply({ content: 'Internal Error!', ephemeral: true })
             return
         }
@@ -263,6 +265,7 @@ module.exports = {
         }
         let idx = parseInt(actionParts[3])
         if ( isNaN(idx) || idx < 0 || idx >= leaderboardCache.length ) {
+            log.warning('Invalid parameters', actionParts)
             interaction.reply({ content: 'Button interaction parameters were invalid.', ephemeral: true })
             return
         }

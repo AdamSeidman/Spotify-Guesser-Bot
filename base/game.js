@@ -6,8 +6,9 @@
 
 const db = require('./db')
 const spotify = require('./spotify')
-const { strip, escapeDiscordString } = require('./helpers')
 const config = require('../client/config')
+const log = require('better-node-file-logger')
+const { strip, escapeDiscordString } = require('./helpers')
 
 var map = {}
 var history = {}
@@ -50,6 +51,7 @@ var createGame = async function(msg, channelId) {
     }
     let game = getGame(msg.guild.id)
     if (game !== undefined) {
+        log.warning('Tried to create a game twice?')
         msg.reply('There is already a game going on!')
         return
     }
@@ -173,6 +175,7 @@ var shuffle = async function(msg) {
     delete map[game.key]
     let track = await createGame(msg)
     if (track === undefined || track.artist === undefined) {
+        log.error('Deleted a game?', msg.guild.id)
         msg.reply('Oops, I deleted your game! :(')
     }
     else {
@@ -184,6 +187,7 @@ var changeChannel = async function(msg, channel) {
     if (msg === undefined || channel === undefined) return
     let game = getGame(msg.guild.id)
     if (channel === undefined) {
+        log.warning('Unknown channel', channel)
         msg.reply({content: 'Error! Could not find channel!', ephemeral: true})
     } else if (game) {
         game.channelId = channel.id
@@ -192,6 +196,7 @@ var changeChannel = async function(msg, channel) {
     }
     else {
         let track = await createGame(msg, channel.id)
+        log.info('Started first game in new server!', msg.guild.name)
         channel.send(`Start the game with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
         return true
     }

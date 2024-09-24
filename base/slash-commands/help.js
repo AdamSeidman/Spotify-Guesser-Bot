@@ -29,14 +29,25 @@ const mainItems = [
 2. You may not go twice in a row.
 3. Songs cannot be repeated within ${config.options.minRepeatGuesses} guesses.
 4. All song guesses must exist within the first ${config.options.maxSearchPages * 20} search results on Spotify.
-5. Songs must have a prefix at the beginning of the message they are send in for the bot to count them. This may be checked with \`/info rules\`.`
+5. Songs must have the designated prefix at the beginning of the message for the bot to count them. Your prefix may be checked with \`/info rules\`.`
     }, {
-    //     name: 'Formatting',
-    //     description: 'Formatting of guesses', // TODO
-    //     title: 'Guess Formatting',
-    //     info: `Insert
-    //     Something`
-    // }, {
+        name: 'Formatting',
+        description: 'Formatting of guesses',
+        title: 'Guess Formatting',
+        info: `To guess a song, use a prefix, followed by the song name.
+            Unless required in your server rules, adding an artist to your guess is not mandatory.
+            To specify an artist, use a dash between the song title and the artist(s).
+            You may list more artists, but they all must match for the guess to count.
+            To list multiple artists, separate them by commas or ampersands.
+            You will not be penalized for incorrect punctuation or symbol characters.
+            Each of the following examples will use a prefix of \`!\`. Substitute the prefix for the one used in your server.
+            All of the following are valid guesses of the same song:
+            > !Theme From Schindler's List
+            > !theme from schindlers list
+            > !Theme from Schindlers list - John Williams
+            > !Theme from Schindler's List - john williams, itzhak perlman
+            > !theme from schindlers list-Boston symphony orchestra & john williams`
+    }, {
         name: 'Commands',
         description: 'Available commands',
         title: 'Bot Commands',

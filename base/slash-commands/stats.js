@@ -253,7 +253,7 @@ var showGuildStats = async function(interaction) {
     })
     fields.push({
         name: 'Most Correct Contributions',
-        value: `${Discord.userMention(biggestWinnerId)}> (${maxSuccesses})`
+        value: `${Discord.userMention(biggestWinnerId)} (${maxSuccesses})`
     })
     fields.push({
         name: 'Most Incorrect Contributions',

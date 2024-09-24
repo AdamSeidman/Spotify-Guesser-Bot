@@ -96,7 +96,7 @@ var showUserStats = async function(interaction) {
         }
     }
 
-    let globalStats = `Correct: **${globalCorrect}**
+    let globalStats = `Correct: ${Discord.bold(globalCorrect)}
         Incorrect: **${globalIncorrect}**
         Correct Rate: **${getPercentage(globalCorrect, guesses.length)}**${globalChallengeRateText}
         Score: **${globalCorrect + globalChallenges.success - globalIncorrect - globalChallenges.failure}**`
@@ -192,7 +192,7 @@ var showGuildStats = async function(interaction) {
                 inline: true
             })
             if (max >= 0) {
-                challengesUserText = `<@${userId}> (${max})`
+                challengesUserText = `${Discord.userMention(userId)} (${max})`
             }
         }
     }
@@ -227,9 +227,9 @@ var showGuildStats = async function(interaction) {
     })
     fields.push({
         name: 'Most Accurate Player',
-        value: `<@${
+        value: `${Discord.userMention(
             accuracies[accKey].memberId
-        }> - ${
+        )} - ${
             getPercentage(accuracies[accKey].successes, (accuracies[accKey].successes + accuracies[accKey].failures))
         } (${accuracies[accKey].successes}/${
             (accuracies[accKey].successes + accuracies[accKey].failures)
@@ -253,11 +253,11 @@ var showGuildStats = async function(interaction) {
     })
     fields.push({
         name: 'Most Correct Contributions',
-        value: `<@${biggestWinnerId}> (${maxSuccesses})`
+        value: `${Discord.userMention(biggestWinnerId)}> (${maxSuccesses})`
     })
     fields.push({
         name: 'Most Incorrect Contributions',
-        value: `<@${biggestLoserId}> (${maxFailures})`
+        value: `${Discord.userMention(biggestLoserId)} (${maxFailures})`
     })
     if (challengesUserText.length > 0) {
         fields.push({

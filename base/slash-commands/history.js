@@ -86,7 +86,7 @@ const newHistoryEmbed = (title, history, userId, thumbnail, isCurrent) => {
     let firstLine = `Started with: ${escapeDiscordString(history.hist.list.shift().full)}\n`
     let values = []
     history.hist.list.forEach((track, idx) => {
-        values.push(`**${idx + 1}**)  ` + escapeDiscordString(`${track.full} (<@${track.memberId}>)`))
+        values.push(`${Discord.bold(idx + 1)})  ` + escapeDiscordString(`${track.full} (${Discord.userMention(track.memberId)})`))
     })
     if (values.length > 0) {
         values[0] = `${firstLine}\n${values[0]}`
@@ -94,7 +94,7 @@ const newHistoryEmbed = (title, history, userId, thumbnail, isCurrent) => {
         values = [firstLine]
     }
     if (!isCurrent) {
-        let lastLine = `${history.hist.list.length > 0? '\n' : ''}Chain broken by <@${history.ruinedMemberId}> (${history.ruinedText})`
+        let lastLine = `${history.hist.list.length > 0? '\n' : ''}Chain broken by ${Discord.userMention(history.ruinedMemberId)} (${history.ruinedText})`
         values[values.length - 1] = `${values[values.length - 1]}\n${lastLine}`
     }
     historyCache.push({title, list: copyObject(values), userId, thumbnail})
@@ -153,9 +153,9 @@ const subCommands = {
             interaction.editReply({content: 'Could not find a game!', ephemeral: true})
         }
         else {
-            showHistory(interaction, `Best round for __${
-                escapeDiscordString(interaction.guild.name)
-            }__ (Round #${idx + 1})`, histories[idx])
+            showHistory(interaction, `Best round for ${
+                Discord.underline(escapeDiscordString(interaction.guild.name))
+            } (Round #${idx + 1})`, histories[idx])
         }
     },
     last: async interaction => {
@@ -164,9 +164,9 @@ const subCommands = {
             interaction.editReply({content: 'Could not find a game!', ephemeral: true})
         }
         else {
-            showHistory(interaction, `Last round for __${
+            showHistory(interaction, `Last round for ${Discord.underline(
                 escapeDiscordString(interaction.guild.name)
-            }__ (Round #${histories.length})`, histories[histories.length - 1])
+            )} (Round #${histories.length})`, histories[histories.length - 1])
         }
     },
     current: async interaction => {
@@ -176,9 +176,9 @@ const subCommands = {
         }
         else {
             let histories = await db.getAllGuildHistories(interaction.guild.id)
-            showHistory(interaction, `Current round for __${
+            showHistory(interaction, `Current round for ${Discord.underline(
                 escapeDiscordString(interaction.guild.name)
-            }__ (Round #${histories.length + 1})`, {hist: game}, true)
+            )} (Round #${histories.length + 1})`, {hist: game}, true)
         }
     },
     round: async interaction => {
@@ -195,9 +195,9 @@ const subCommands = {
                 interaction.editReply({content: `There are only ${histories.length} rounds in this server!`, ephemeral: true})
             }
             else {
-                showHistory(interaction, `Round ${num} for __${
-                    escapeDiscordString(interaction.guild.name)
-                }__`, histories[num - 1])
+                showHistory(interaction, `Round ${num} for ${
+                    Discord.underline(escapeDiscordString(interaction.guild.name))
+                }`, histories[num - 1])
             }
         }
     }

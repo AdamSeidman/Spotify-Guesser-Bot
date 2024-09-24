@@ -8,6 +8,7 @@ const sqlite3 = require('sqlite3').verbose()
 const { copyObject } = require('./helpers')
 const config = require('../client/config')
 const log = require('better-node-file-logger')
+const Discord = require('discord.js')
 
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'
@@ -609,18 +610,18 @@ var getAllScores = async function(guildId) {
     let playerMap = {}
     let inc = playerId => {
         if (playerId === undefined || playerId == config.discord.botId) return
-        if (playerMap[`<@${playerId}>`] === undefined) {
-            playerMap[`<@${playerId}>`] = 1
+        if (playerMap[Discord.userMention(playerId)] === undefined) {
+            playerMap[Discord.userMention(playerId)] = 1
         } else {
-            playerMap[`<@${playerId}>`] += 1
+            playerMap[Discord.userMention(playerId)] += 1
         }
     }
     let dec = playerId => {
         if (playerId === undefined || playerId == config.discord.botId) return
-        if (playerMap[`<@${playerId}>`] === undefined) {
-            playerMap[`<@${playerId}>`] = -1
+        if (playerMap[Discord.userMention(playerId)] === undefined) {
+            playerMap[Discord.userMention(playerId)] = -1
         } else {
-            playerMap[`<@${playerId}>`] -= 1
+            playerMap[Discord.userMention(playerId)] -= 1
         }
     }
     Object.keys(permanentHistories).forEach(key => {

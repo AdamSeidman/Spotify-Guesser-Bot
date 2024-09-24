@@ -33,7 +33,7 @@ module.exports = {
     phrase: 'details',
     data: new Discord.SlashCommandBuilder()
         .setName('details')
-        .setDescription('Get most recent song description.')
+        .setDescription('Get most recent song description/info.')
         .addIntegerOption(opt => 
             opt
                 .setName('track')

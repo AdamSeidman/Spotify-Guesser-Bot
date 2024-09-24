@@ -34,7 +34,7 @@ const confirmAction = interaction => {
     else {
         challengeSemaphores.push(`#${interaction.guild.id}`)
         interaction.update({content: 'Challenge Submitted!', components: []})
-        interaction.channel.send(`<@${interaction.member.id}> issued a challenge against \`${context.game.currentTrack.name}\`!`)
+        interaction.channel.send(`${Discord.userMention(interaction.member.id)} issued a challenge against \`${context.game.currentTrack.name}\`!`)
         spotify.getFirstTrack(context.word, context.game.usedTracks).then(async track => {
             db.makeChallengeResult(interaction.guild.id, interaction.member.id, track === undefined)
             if (track) {
@@ -85,7 +85,7 @@ module.exports = {
     phrase: 'challenge',
     data: new Discord.SlashCommandBuilder()
         .setName('challenge')
-        .setDescription('Challenge the last word in the chain!'),
+        .setDescription('Challenge the next word in the chain.'),
     execute: async interaction => {
         let rules = await db.getServerRules(interaction.guild.id)
         if (rules === undefined) {

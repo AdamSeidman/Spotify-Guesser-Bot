@@ -22,7 +22,7 @@ const trackDetailsEmbed = track => {
     if (track.memberId) {
         fields.unshift({
             name: 'Submitted by',
-            value: `<@${track.memberId}>`
+            value: Discord.userMention(track.memberId)
         })
     }
     return new Discord.EmbedBuilder()

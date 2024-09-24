@@ -6,13 +6,13 @@
 
 const db = require('./db')
 const spotify = require('./spotify')
+const Discord = require('discord.js')
 const config = require('../client/config')
 const log = require('better-node-file-logger')
 const { strip, escapeDiscordString } = require('./helpers')
 
 var map = {}
 var history = {}
-const repeatGuesses = 50
 
 var initGames = async function() {
     let cachedHistories = await db.getSavedHistories()
@@ -86,7 +86,7 @@ var addBotTrack = async function(msg) {
         ...track,
         memberId: config.discord.botId
     })
-    if (game.usedTracks.length > repeatGuesses) {
+    if (game.usedTracks.length > config.options.minRepeatGuesses) {
         game.usedTracks.shift()
     }
     game.currentTrack = track
@@ -108,7 +108,7 @@ var failure = async function(msg, failureReason) {
     if (msg === undefined || failureReason === undefined) return
     let game = getGame(msg.guild.id)
     if (game !== undefined) {
-        await closeGame(game, msg.member.id, `**${failureReason}**`)
+        await closeGame(game, msg.member.id, `${Discord.bold(failureReason)}`)
     }
 }
 
@@ -116,30 +116,30 @@ var guess = async function(msg, track) {
     let game = getGame(msg.guild.id)
     if (game === undefined) return 'Unknown Error!'
     let rules = await db.getServerRules(msg.guild.id)
-    let ruinedMsg = `<@${msg.member.id}> RUINED IT AT **${game.count}**!!`
+    let ruinedMsg = `${Discord.userMention(msg.member.id)} RUINED IT AT ${Discord.bold(game.count)}!!`
     if (game.lastMemberId === msg.member.id) {
-        let ruinedReason = '**No going twice.**'
+        let ruinedReason = Discord.bold('No going twice.')
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
     }
     if (track === undefined || track.artist === undefined) {
-        let ruinedReason = '**Track not recognized.**'
+        let ruinedReason = Discord.bold('Track not recognized.')
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
     }
     let shortName = getShortName(track)
     if (shortName.split(' ').length <= 1 && !rules['single-words-allowed']) {
-        let ruinedReason = '**No single words.**'
+        let ruinedReason = Discord.bold('No single words.')
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
     }
     if (game.usedTracks.includes(shortName)) {
-        let ruinedReason = `**No repeats within ${repeatGuesses} tracks.**`
+        let ruinedReason = Discord.bold(`No repeats within ${config.options.minRepeatGuesses} tracks.`)
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
     }
     if (game.currentTrack.name.length > 0 && getShortName(game.currentTrack).split(' ').slice(-1)[0] !== shortName.split(' ')[0]) {
-        let ruinedReason = '**Wrong word.**'
+        let ruinedReason = Discord.bold('Wrong word.')
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
     }
@@ -148,7 +148,7 @@ var guess = async function(msg, track) {
         ...track,
         memberId: msg.member.id
     })
-    if (game.usedTracks.length > repeatGuesses) {
+    if (game.usedTracks.length > config.options.minRepeatGuesses) {
         game.usedTracks.shift()
     }
     game.currentTrack = track

@@ -87,7 +87,7 @@ const newLeaderboardEmbed = (title, valueArray, userId) => {
     while (values.length > 0 && desc.length < config.options.maxLeaderboardSlots) {
         let item = values.shift()
         let key = Object.keys(item)[0]
-        desc.push(`${desc.length + 1}. ${key} - **${item[key]}**`)
+        desc.push(`${desc.length + 1}. ${key} - ${Discord.bold(item[key])}`)
     }
     let idx = leaderboardCache.length - 1
     let buttons = getLeaderboardButtons(idx, 0)
@@ -105,7 +105,7 @@ const cachedLeaderboardEmbed = (cachedVal, startVal) => {
     while (values.length > 0 && desc.length < config.options.maxLeaderboardSlots) {
         let item = values.shift()
         let key = Object.keys(item)[0]
-        desc.push(`${desc.length + 1 + startVal}. ${key} - **${item[key]}**`)
+        desc.push(`${desc.length + 1 + startVal}. ${key} - ${Discord.bold(item[key])}`)
     }
     desc = desc.join('\n')
     return new Discord.EmbedBuilder()

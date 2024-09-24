@@ -26,7 +26,9 @@ const getNextWord = (interaction, hide) => {
 const getCurrentRound = async (interaction, hide) => {
     if (games.getGame(interaction.guild.id)) {
         let guesses = await db.getGuildPreviousGames(interaction.guild.id)
-        interaction.reply({content: `This is round #__**${ guesses.length + 1 }**__.`, ephemeral: hide})
+        interaction.reply({content: `This is round #${
+            Discord.underline(Discord.bold(guesses.length + 1))
+        }.`, ephemeral: hide})
     }
     else {
         interaction.reply({content: 'No game has been started!', ephemeral: true})
@@ -36,7 +38,7 @@ const getCurrentRound = async (interaction, hide) => {
 const showRules = async (interaction, hide) => {
     let rules = await db.getServerRules(interaction.guild.id)
     if (rules) {
-        interaction.reply({content: `**Server Rules**:\n  Prefix: \`${
+        interaction.reply({content: `${Discord.bold('Server Rules')}:\n  Prefix: \`${
             rules.prefix
         }\`\n  Single Words Allowed:  \`${
             rules['single-words-allowed']
@@ -66,7 +68,7 @@ module.exports = {
     phrase: 'info',
     data: new Discord.SlashCommandBuilder()
         .setName('info')
-        .setDescription('See history of current game.')
+        .setDescription('See server and game information.')
         .addSubcommand(subcommand =>
             subcommand
                 .setName('next-word')

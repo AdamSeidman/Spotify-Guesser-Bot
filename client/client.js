@@ -45,6 +45,9 @@ bot.on('interactionCreate', interaction => {
     else if ( interaction.isChatInputCommand() ) {
         commands.handleSlashCommand(interaction)
     }
+    else if ( interaction.isStringSelectMenu() ) {
+        commands.handleStringSelect(interaction)
+    }
 })
 
 bot.on('error', log.error)

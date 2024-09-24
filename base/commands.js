@@ -18,6 +18,7 @@ const log = require('better-node-file-logger')
 const CMD_DIR = 'slash-commands'
 var buttonHooks = {}
 var buttonActionHooks = {}
+var dropdownHooks = {}
 
 const processMessage = async msg => {
     let rules = await db.getServerRules(msg.guild.id)
@@ -77,6 +78,9 @@ const registerSlashCommands = client => {
                 cmd.buttons.forEach(x => {
                     buttonHooks[x.btn.data.custom_id] = x
                 })
+            }
+            if (cmd.dropdownHook !== undefined) {
+                dropdownHooks[cmd.phrase] = cmd.dropdownHook
             }
             if (cmd.btnActionHandler !== undefined) {
                 buttonActionHooks[cmd.phrase] = cmd.btnActionHandler
@@ -139,9 +143,23 @@ const handleButtonPress = async interaction => {
     }
 }
 
+const handleStringSelect = async interaction => {
+    let parts = interaction.customId.split('_')
+    let hook = dropdownHooks[parts[0]]
+
+    if ( hook === undefined ) {
+        interaction.reply({content: 'Could not complete request!', ephemeral: true})
+        log.error('Could not complete dropdown change', parts)
+    }
+    else {
+        hook(interaction, parts.slice(1))
+    }
+}
+
 module.exports = {
     processMessage,
     registerSlashCommands,
     handleSlashCommand,
-    handleButtonPress
+    handleButtonPress,
+    handleStringSelect
 }

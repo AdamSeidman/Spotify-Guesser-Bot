@@ -29,7 +29,7 @@ const confirmAction = interaction => {
             delete pendingChallenges[key]
         }
         interaction.update({content: 'This challenge is no longer valid.', components: []})
-        log.warning('Invalid challenge')
+        log.warn('Invalid challenge')
     }
     else {
         challengeSemaphores.push(`#${interaction.guild.id}`)

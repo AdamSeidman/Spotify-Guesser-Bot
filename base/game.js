@@ -51,7 +51,7 @@ var createGame = async function(msg, channelId) {
     }
     let game = getGame(msg.guild.id)
     if (game !== undefined) {
-        log.warning('Tried to create a game twice?')
+        log.warn('Tried to create a game twice?')
         msg.reply('There is already a game going on!')
         return
     }
@@ -187,7 +187,7 @@ var changeChannel = async function(msg, channel) {
     if (msg === undefined || channel === undefined) return
     let game = getGame(msg.guild.id)
     if (channel === undefined) {
-        log.warning('Unknown channel', channel)
+        log.warn('Unknown channel', channel)
         msg.reply({content: 'Error! Could not find channel!', ephemeral: true})
     } else if (game) {
         game.channelId = channel.id

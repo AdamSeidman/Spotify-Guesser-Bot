@@ -265,7 +265,7 @@ module.exports = {
         }
         let idx = parseInt(actionParts[3])
         if ( isNaN(idx) || idx < 0 || idx >= leaderboardCache.length ) {
-            log.warning('Invalid parameters', actionParts)
+            log.warn('Invalid parameters', actionParts)
             interaction.reply({ content: 'Button interaction parameters were invalid.', ephemeral: true })
             return
         }

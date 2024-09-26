@@ -339,7 +339,7 @@ module.exports = {
     execute: async interaction => {
         let sub = interaction.options.getSubcommand()
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
-            log.warning('No subcommand in stats execute', sub)
+            log.warn('No subcommand in stats execute', sub)
             interaction.reply({ content: 'Could not find stats sub-command!', ephemeral: true })
         }
         await interaction.deferReply({ ephemeral: getHideResult(interaction) })

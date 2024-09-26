@@ -22,12 +22,6 @@ var dropdownHooks = {}
 
 const processMessage = async msg => {
     let rules = await db.getServerRules(msg.guild.id)
-    if (config.discord.adminId !== undefined && msg.member.id == config.discord.adminId && typeof config.options.adminRestartPhrase === 'string') {
-        if (strip(msg.content.toLowerCase()).split(' ').join('') === config.options.adminRestartPhrase.toLowerCase()) {
-            log.info('Restart Requested', config.options.adminRestartPhrase)
-            process.exit()
-        }
-    }
     if (msg.content.trim().startsWith(rules.prefix)) {
         let game = games.getGame(msg.guild.id)
         if (game === undefined || game.channelId !== msg.channel.id) return

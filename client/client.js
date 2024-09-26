@@ -9,6 +9,7 @@ const game = require('../base/game')
 const Discord = require('discord.js')
 const spotify = require('../base/spotify')
 const commands = require('../base/commands')
+const { strip } = require('../base/helpers')
 const log = require('better-node-file-logger')
 const reqHandling = require('../base/reqHandling')
 
@@ -31,6 +32,12 @@ bot.on('messageCreate', async msg => {
         log.info(`DM (${msg.author.username}): ${msg.content}`)
     }
     else if (!msg.author.bot) {
+        if (config.discord.adminId !== undefined && msg.member.id == config.discord.adminId && typeof config.options.adminRestartPhrase === 'string') {
+            if (strip(msg.content.toLowerCase()).split(' ').join('') === config.options.adminRestartPhrase.toLowerCase()) {
+                log.info('Restart Requested', config.options.adminRestartPhrase)
+                process.exit()
+            }
+        }
         reqHandling.enqueueRequest(msg.guild.id, commands.processMessage, msg)
     }
 })

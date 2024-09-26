@@ -180,10 +180,35 @@ const getTrackByArtist = track => {
         else {
             let song = track.slice(0, track.lastIndexOf('-')).trim()
             let artist = track.slice(track.lastIndexOf('-') + 1).trim()
+            let potentialArtists = []
+            if (artist.includes(',') || artist.includes('&')) {
+                potentialArtists = artist.trim().split(' ').filter(x => x.length > 0).join(' ')
+                potentialArtists = potentialArtists.split(',').filter(x => x.length > 0).join('&')
+                potentialArtists = potentialArtists.split('&').filter(x => x.length > 0).map(x => x.trim().toUpperCase())
+                if (potentialArtists.length > 10) {
+                    potentialArtists = []
+                }
+            }
             let callback = data => {
                 let res = data.body.tracks.items.find(x => {
-                    return strip(x.name.toUpperCase().trim()) === strip(song.toUpperCase())
-                        && strip(x.artists[0].name.toUpperCase().trim()) === strip(artist.toUpperCase())
+                    if (strip(x.name.toUpperCase().trim()) !== strip(song.toUpperCase())) {
+                        return false
+                    }
+                    if (strip(x.artists[0].name.toUpperCase().trim()) === strip(artist.toUpperCase())) {
+                        return true
+                    }
+                    if (potentialArtists.length === 0) {
+                        return false
+                    }
+                    while (potentialArtists.length > 0) {
+                        let item = potentialArtists.shift()
+                        if (undefined === x.artists.find(y => {
+                            return strip(y.name.toUpperCase().trim()) === strip(item.toUpperCase())
+                        })) {
+                            return false
+                        }
+                    }
+                    return true
                 })
                 if ( res !== undefined ) {
                     resolve(makeTrack(res))

@@ -11,7 +11,8 @@
             "GuildScheduledEvents",
             "GuildMembers"
         ],
-        "partials": [1]
+        "partials": [1],
+        "adminId": ""
     },
     "spotify": {
         "refreshToken": "ABCDEFG12345",
@@ -25,7 +26,8 @@
         "defaultCommandPrefix": "!",
         "maxLeaderboardSlots": 20,
         "maxHistorySlots": 20,
-        "maxGuildFavoriteSongs": 10
+        "maxGuildFavoriteSongs": 10,
+        "adminRestartPhrase": "sgbrestart"
     },
     "randomTrackTerms": ["the", "if", "who", "we", "where", "why", "an", "he", "she", "you", "love", "to", "is", "in", 
         "there", "what", "when", "how", "too", "for", "far", "him", "his", "hers", "her", "song"]

@@ -42,11 +42,11 @@ const mainItems = [
             You will not be penalized for incorrect punctuation or symbol characters.
             Each of the following examples will use a prefix of \`!\`. Substitute the prefix for the one used in your server.
             All of the following are valid guesses of the same song:
-            > !Theme From Schindler's List
-            > !theme from schindlers list
-            > !Theme from Schindlers list - John Williams
-            > !Theme from Schindler's List - john williams, itzhak perlman
-            > !theme from schindlers list-Boston symphony orchestra & john williams`
+            > !Star Wars (Main Theme)
+            > !star wars main theme
+            > !Star Wars main theme - John Williams
+            > !"Star Wars Main Theme" - john williams, london symphony orchestra
+            > !star wars main theme-London Symphony Orchestra & John Williams`
     }, {
         name: 'Commands',
         description: 'Available commands',

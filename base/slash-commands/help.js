@@ -66,6 +66,7 @@ const mainItems = [
 \`/leaderboard global-servers ([hide])\`: Show the global leaderboard for longest server chains.
 \`/leaderboard server ([hide])\`: Show the leaderboard for users within this server, by points.
 \`/playlist [round]\`: Create a playlist of one of your favorite rounds. Requires at least ${config.options.minPlaylistTracks} contributions.
+The playlist title will include the name of your server and the cover art will be your server picture.
 \`/set artist-required [required]\`: Set whether or not artist is required in guess. Command only available to admins.
 \`/set challenge-first [allowed]\`: Set whether or not you can challenge the first provided song in a chain. Command only available to admins.
 \`/set challenges-allowed [allowed]\`: Set whether or not challenges are allowed on this server. Can soft-lock without this enabled. Command only available to admins.

@@ -24,7 +24,10 @@ module.exports = {
     execute: async interaction => {
         await interaction.deferReply({ ephemeral: getHideResult(interaction) })
         let title = interaction.options.getString('track')
-        let track = await spotify.getTrackByArtist( title )
+        let track = await spotify.getTrack( title, true )
+        if ( track === undefined ) {
+            track = await spotify.getTrackByArtist( title )
+        }
         if ( track === undefined ) {
             track = await spotify.getTrack( title )
         }

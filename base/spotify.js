@@ -137,7 +137,7 @@ const createPlaylist = (title, list, uri) => {
     })
 }
 
-const getTrack = track => {
+const getTrack = (track, peek) => {
     let count = 0
     return new Promise((resolve, reject) => {
         if (spotifyApi === undefined || typeof track !== 'string') {
@@ -152,7 +152,7 @@ const getTrack = track => {
             if ( res !== undefined ) {
                 resolve(makeTrack(res))
             }
-            else if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
+            else if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total && !peek) {
                 if (count >= config.options.maxSearchPages) {
                     resolve()
                 }

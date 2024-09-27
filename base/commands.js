@@ -10,10 +10,10 @@ const path = require('path')
 const games = require('./game')
 const spotify = require('./spotify')
 const Discord = require('discord.js')
-const { strip } = require('./helpers')
 const config = require('../client/config')
 const reqHandling = require('./reqHandling')
 const log = require('better-node-file-logger')
+const { strip, copyObject } = require('./helpers')
 
 const CMD_DIR = 'slash-commands'
 var buttonHooks = {}
@@ -28,13 +28,18 @@ const processMessage = async msg => {
         let track = msg.content.substring(msg.content.toLowerCase().indexOf(
             rules.prefix.toLowerCase()) + rules.prefix.length).trim()
         if (track === undefined || track.length < 1) return
-        let trackByArtist = await spotify.getTrackByArtist(track)
-        if (trackByArtist === undefined && !rules['artist-required']) {
-            track = await spotify.getTrack(track)
+
+        let resultingTrack = undefined
+        if ( !rules['artist-required'] ) {
+            resultingTrack = await spotify.getTrack(track, true)
         }
-        else {
-            track = trackByArtist
+        if ( resultingTrack === undefined ) {
+            resultingTrack = await spotify.getTrackByArtist(track)
         }
+        if ( resultingTrack === undefined && !rules['artist-required'] ) {
+            resultingTrack = await spotify.getTrack(track)
+        }
+        track = copyObject(resultingTrack)
         let res = await games.guess(msg, track)
         if (res === undefined) {
             await msg.react('✅')

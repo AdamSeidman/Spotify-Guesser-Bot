@@ -39,7 +39,7 @@ const processMessage = async msg => {
         if ( resultingTrack === undefined && !rules['artist-required'] ) {
             resultingTrack = await spotify.getTrack(track)
         }
-        track = copyObject(resultingTrack)
+        track = resultingTrack
         let res = await games.guess(msg, track)
         if (res === undefined) {
             await msg.react('✅')

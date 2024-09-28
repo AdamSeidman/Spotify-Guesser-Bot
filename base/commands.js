@@ -13,7 +13,7 @@ const Discord = require('discord.js')
 const config = require('../client/config')
 const reqHandling = require('./reqHandling')
 const log = require('better-node-file-logger')
-const { strip, copyObject } = require('./helpers')
+const { strip } = require('./helpers')
 
 const CMD_DIR = 'slash-commands'
 var buttonHooks = {}

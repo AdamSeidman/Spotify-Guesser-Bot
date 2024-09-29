@@ -44,6 +44,9 @@ module.exports = {
         } catch (err) {}
         return isAdmin
     },
-    copyObject: utils.copyObject,
+    copyObject: obj => {
+        if (obj === undefined || typeof obj !== 'object') return obj
+        return utils.copyObject(obj)
+    },
     escapeDiscordString: str => str.replace(/(\*|_|`|~|\\)/g, '\\$1')
 }

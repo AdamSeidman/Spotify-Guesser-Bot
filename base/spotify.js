@@ -294,8 +294,8 @@ const getFirstTrack = async (word, exclusions) => {
         let callback = data => {
             count++
             let res = data.body.tracks.items.find(x => {
-                return strip(x.name.includes(' ') && x.name.toUpperCase().trim().split(' ')[0]) === strip(word.toUpperCase().trim()) 
-                    && !exclusions.includes(strip(x.name).trim().toLowerCase())
+                return x.name.includes(' ') && strip(x.name.toUpperCase()).split(' ').includes(strip(word).toUpperCase())
+                    && !exclusions.includes(strip(x.name).toLowerCase())
             })
             if ( res !== undefined ) {
                 resolve(makeTrack(res))

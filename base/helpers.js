@@ -10,7 +10,10 @@ const wait = require('node:timers/promises').setTimeout
 module.exports = {
     strip: str => {
         if (typeof str !== 'string') return ''
-        return utils.stripPunctuation(str).replaceAll('\'', '').split('"').join('')
+        return utils.stripPunctuation(str)
+            .replaceAll('\'', '')
+            .split('"').join('')
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     },
     randomArrayItem: utils.randomArrayItem,
     wait,

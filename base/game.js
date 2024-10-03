@@ -138,7 +138,7 @@ var guess = async function(msg, track) {
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
     }
-    if (game.currentTrack.name.length > 0 && getShortName(game.currentTrack).split(' ').slice(-1)[0] !== shortName.split(' ')[0]) {
+    if (game.currentTrack.name.length > 0 && !shortName.split(' ').includes(getShortName(game.currentTrack).split(' ').slice(-1)[0])) {
         let ruinedReason = Discord.bold('Wrong word.')
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]

@@ -25,7 +25,7 @@ const mainItems = [
         name: 'Rules',
         description: 'Rules of the game',
         title: 'Rules',
-        info: `1. The next song in a the chain must start with the same word as the previous song.
+        info: `1. The next song in a chain must include the last word of the previous song.
 2. You may not go twice in a row.
 3. Songs cannot be repeated within ${config.options.minRepeatGuesses} guesses.
 4. All song guesses must exist within the first ${config.options.maxSearchPages * 20} search results on Spotify.

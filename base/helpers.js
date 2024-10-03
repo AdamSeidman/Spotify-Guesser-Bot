@@ -10,7 +10,9 @@ const wait = require('node:timers/promises').setTimeout
 module.exports = {
     strip: str => {
         if (typeof str !== 'string') return ''
-        return utils.stripPunctuation(str)
+        // eslint-disable-next-line no-useless-escape
+        return str.replace(/['!"#$%&\\'()\*+,\-\.\/:;<=>?@\[\\\]\^_`{|}~']/g, '')
+            .replace(/\s{2,}/g, ' ')
             .replaceAll('\'', '')
             .split('"').join('')
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')

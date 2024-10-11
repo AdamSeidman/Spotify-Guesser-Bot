@@ -60,7 +60,7 @@ const processMessage = async msg => {
 
 const registerSlashCommands = client => {
     if (client === undefined) {
-        log.error('No client in registerSlashCommands!', client, true)
+        log.error('No client in registerSlashCommands!', client, null, true)
         return
     }
 
@@ -99,7 +99,7 @@ const registerSlashCommands = client => {
         log.info(`Refreshing ${commands.length} slash commands.`)
         rest.put(Discord.Routes.applicationCommands(config.discord.botId), {body: commands})
     } catch (err) {
-        log.error('Could not deploy slash commands', err, true)
+        log.error('Could not deploy slash commands', null, err, true)
     }
 }
 
@@ -107,7 +107,7 @@ const queuedCommand = async interaction => {
     try {
         interaction.client.commands.get(interaction.commandName).execute(interaction)
     } catch (err) {
-        log.error('Error executing command interaction!', err)
+        log.error('Error executing command interaction!', interaction.commandName, err, true)
         interaction.reply({content: 'Could not execute command!', ephemeral: true})
     }
 }
@@ -116,13 +116,18 @@ const handleSlashCommand = async interaction => {
     const command = interaction.client.commands.get(interaction.commandName)
 
     if (!command) {
-        log.error(`Requested slash command not found: ${command}`, `${interaction.guild.name}-${interaction.member.name}`)
+        log.error('Requested slash command not found', command, `${interaction.guild.name}-${interaction.member.name}`, true)
         interaction.reply({content: 'Internal Error! Command not found.', ephemeral: true})
         return
     }
 
     if (command.immedate) {
-        command.execute(interaction)
+        try {
+            command.execute(interaction)
+        }
+        catch (err) {
+            log.error('Highest level slash command error!', interaction.commandName, err, true)
+        }
     } else {
         reqHandling.enqueueRequest(interaction.guild.id, queuedCommand, interaction)
     }
@@ -140,11 +145,16 @@ const handleButtonPress = async interaction => {
         }
     }
     else if (Object.keys(buttonActionHooks).includes(action)) {
-        await buttonActionHooks[action](interaction)
+        try {
+            await buttonActionHooks[action](interaction)
+        }
+        catch (err) {
+            log.error('Highest level button press error!', action, err, true)
+        }
     }
     else {
         interaction.reply({content: 'Could not complete button press request!', ephemeral: true})
-        log.error('Could not complete button press.')
+        log.error('Could not complete button press.', action)
     }
 }
 
@@ -157,7 +167,12 @@ const handleStringSelect = async interaction => {
         log.error('Could not complete dropdown change', parts)
     }
     else {
-        hook(interaction, parts.slice(1))
+        try {
+            hook(interaction, parts.slice(1))
+        }
+        catch (err) {
+            log.error('Highest level string select error!', interaction.customId, err, true)
+        }
     }
 }
 

@@ -55,6 +55,9 @@ bot.on('interactionCreate', interaction => {
     else if ( interaction.isStringSelectMenu() ) {
         commands.handleStringSelect(interaction)
     }
+    else {
+        log.warn(`Unknown interaction created by ${interaction.member.id}`, interaction.guild.id, true)
+    }
 })
 
 bot.on('error', log.error)

@@ -40,7 +40,7 @@ const refreshSpotifyToken = () => {
             })
         },
         err => {
-            log.error('Could not refresh access token', err, true)
+            log.error('Could not refresh access token', null, err, true)
             throw err
         })
 }

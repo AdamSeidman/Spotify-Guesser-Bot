@@ -34,9 +34,14 @@ const warn = (str, vars, verbalize) => {
     if (verbalize) announce(`${str} (${vars})`)
 }
 
-const error = (str, vars, verbalize) => {
-    log.error(str, vars)
-    if (verbalize) announce(`${str} (${vars})`)
+const error = (str, vars, err, verbalize) => {
+    if (verbalize) {
+        log.error(`${str} Var: ${vars}`, err)
+        announce(`${str} (${vars})`)
+    }
+    else {
+        log.error(str, vars)
+    }
 }
 
 module.exports = {

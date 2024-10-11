@@ -4,25 +4,32 @@
  * Author: Adam Seidman
  */
 
+const log = require('./log')
+
 var requestMap = {}
 
 var enqueueRequest = function(guildId, fnToCall, ...args) {
-    if (guildId === undefined) return
-    if (requestMap[`#${guildId}`] === undefined) {
-        requestMap[`#${guildId}`] = {
-            requests: [],
-            requestRunning: false
+    try {
+        if (guildId === undefined) return
+        if (requestMap[`#${guildId}`] === undefined) {
+            requestMap[`#${guildId}`] = {
+                requests: [],
+                requestRunning: false
+            }
         }
-    }
-    return new Promise((resolve, reject) => {
-        requestMap[`#${guildId}`].requests.push({
-            resolve,
-            reject,
-            fnToCall,
-            args
+        return new Promise((resolve, reject) => {
+            requestMap[`#${guildId}`].requests.push({
+                resolve,
+                reject,
+                fnToCall,
+                args
+            })
+            tryNext(guildId)
         })
-        tryNext(guildId)
-    })
+    }
+    catch (err) {
+        log.error('Could not enqueue request', guildId, err, true)
+    }
 }
 
 var tryNext = function(guildId) {

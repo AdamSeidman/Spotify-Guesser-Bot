@@ -44,7 +44,7 @@ const makePlaylist = async interaction => {
             }
         } catch (err) {
             interaction.editReply('Playlist could not be created!')
-            log.error('Could not create playlist', err, true)
+            log.error('Could not create playlist', key, err, true)
         }
     }
 }

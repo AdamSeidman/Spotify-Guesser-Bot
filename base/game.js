@@ -28,6 +28,9 @@ var initGames = async function() {
             }
         })
     }
+    else {
+        log.warn('Could not find cached games!', (cachedHistories === undefined), true)
+    }
 }
 
 var getGame = function(id) {
@@ -175,7 +178,7 @@ var shuffle = async function(msg) {
     delete map[game.key]
     let track = await createGame(msg)
     if (track === undefined || track.artist === undefined) {
-        log.error('Deleted a game?', msg.guild.id, true)
+        log.error('Deleted a game?', msg.guild.id, 'Error Unknown', true)
         msg.reply('Oops, I deleted your game! :(')
     }
     else {

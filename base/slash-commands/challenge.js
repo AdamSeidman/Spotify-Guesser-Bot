@@ -88,7 +88,7 @@ module.exports = {
     execute: async interaction => {
         let rules = await db.getServerRules(interaction.guild.id)
         if (rules === undefined) {
-            log.error('Unknown error? Rules undefined.', rules, true)
+            log.error('Unknown error? Rules undefined.', rules, null, true)
             return
         }
         else if (!rules['challenges-allowed']) {

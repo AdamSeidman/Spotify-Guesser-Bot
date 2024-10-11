@@ -302,7 +302,7 @@ module.exports = {
     },
     btnActionHandler: async interaction => {
         if ( typeof interaction.customId !== 'string' ) {
-            log.error('No string args in history handler!', interaction.customId, true)
+            log.error('No string args in history handler!', interaction.customId, null, true)
             interaction.reply({ content: 'Internal Error!', ephemeral: true })
             return
         }

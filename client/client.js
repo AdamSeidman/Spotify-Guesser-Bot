@@ -5,12 +5,12 @@
  */
 
 const config = require('./config')
+const log = require('../base/log')
 const game = require('../base/game')
 const Discord = require('discord.js')
 const spotify = require('../base/spotify')
 const commands = require('../base/commands')
 const { strip } = require('../base/helpers')
-const log = require('better-node-file-logger')
 const reqHandling = require('../base/reqHandling')
 
 const bot = new Discord.Client({
@@ -20,11 +20,11 @@ const bot = new Discord.Client({
 bot.login(config.discord.token)
 
 bot.on('ready', async () => {
-    log.quickInit('SGB_')
+    log.init()
     spotify.start()
     await commands.registerSlashCommands(bot)
     await game.initGames()
-    log.info('Bot Initialized.')
+    log.info('Bot Initialized.', 'onReady', true)
 })
 
 bot.on('messageCreate', async msg => {
@@ -58,3 +58,5 @@ bot.on('interactionCreate', interaction => {
 })
 
 bot.on('error', log.error)
+
+module.exports = { client: bot }

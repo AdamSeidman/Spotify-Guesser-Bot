@@ -5,10 +5,10 @@
  */
 
 const db = require('./db')
+const log = require('./log')
 const spotify = require('./spotify')
 const Discord = require('discord.js')
 const config = require('../client/config')
-const log = require('better-node-file-logger')
 const { strip, escapeDiscordString } = require('./helpers')
 
 var map = {}
@@ -175,7 +175,7 @@ var shuffle = async function(msg) {
     delete map[game.key]
     let track = await createGame(msg)
     if (track === undefined || track.artist === undefined) {
-        log.error('Deleted a game?', msg.guild.id)
+        log.error('Deleted a game?', msg.guild.id, true)
         msg.reply('Oops, I deleted your game! :(')
     }
     else {
@@ -196,7 +196,7 @@ var changeChannel = async function(msg, channel) {
     }
     else {
         let track = await createGame(msg, channel.id)
-        log.info('Started first game in new server!', msg.guild.name)
+        log.info('Started first game in new server!', msg.guild.name, true)
         channel.send(`Start the game with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
         return true
     }

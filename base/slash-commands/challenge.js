@@ -5,10 +5,10 @@
  */
 
 const db = require('../db')
+const log = require('../log')
 const games = require('../game')
 const spotify = require('../spotify')
 const Discord = require('discord.js')
-const log = require('better-node-file-logger')
 const { getActionRow, strip } = require('../helpers')
 const { trackDetailsEmbed } = require('../embedBuilder')
 
@@ -88,7 +88,7 @@ module.exports = {
     execute: async interaction => {
         let rules = await db.getServerRules(interaction.guild.id)
         if (rules === undefined) {
-            log.error('Unknown error? Rules undefined.')
+            log.error('Unknown error? Rules undefined.', rules, true)
             return
         }
         else if (!rules['challenges-allowed']) {

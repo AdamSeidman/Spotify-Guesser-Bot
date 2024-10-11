@@ -6,13 +6,13 @@
 
 const fs = require('fs')
 const db = require('./db')
+const log = require('./log')
 const path = require('path')
 const games = require('./game')
 const spotify = require('./spotify')
 const Discord = require('discord.js')
 const config = require('../client/config')
 const reqHandling = require('./reqHandling')
-const log = require('better-node-file-logger')
 const { strip } = require('./helpers')
 
 const CMD_DIR = 'slash-commands'
@@ -60,7 +60,7 @@ const processMessage = async msg => {
 
 const registerSlashCommands = client => {
     if (client === undefined) {
-        log.error('No client in registerSlashCommands!')
+        log.error('No client in registerSlashCommands!', client, true)
         return
     }
 
@@ -99,7 +99,7 @@ const registerSlashCommands = client => {
         log.info(`Refreshing ${commands.length} slash commands.`)
         rest.put(Discord.Routes.applicationCommands(config.discord.botId), {body: commands})
     } catch (err) {
-        log.error('Could not deploy slash commands', err)
+        log.error('Could not deploy slash commands', err, true)
     }
 }
 

@@ -4,9 +4,9 @@
  * Author: Adam Seidman
  */
 
+const log = require('../log')
 const Discord = require('discord.js')
 const config = require('../../client/config')
-const log = require('better-node-file-logger')
 const { hideOption, getHideResult } = require('../helpers')
 
 var commandCategoryMenu = undefined
@@ -124,7 +124,7 @@ const handleDropdownUpdate = (interaction, parts) => {
     let sub = subcommands[parts[0]]
     if (sub === undefined) {
         interaction.reply({content: 'Could not complete request!', ephemeral: true})
-        log.error('Could not complete help subcommand change')
+        log.error('Could not complete help subcommand change', sub, true)
     }
     else {
         sub(interaction)

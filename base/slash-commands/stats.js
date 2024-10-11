@@ -5,9 +5,9 @@
  */
 
 const db = require('../db')
+const log = require('../log')
 const Discord = require('discord.js')
 const config = require('../../client/config')
-const log = require('better-node-file-logger')
 const { getPercentage, escapeDiscordString, hideOption, getHideResult } = require('../helpers')
 
 var showUserStats = async function(interaction) {

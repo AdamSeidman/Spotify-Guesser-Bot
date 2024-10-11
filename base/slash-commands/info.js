@@ -5,9 +5,9 @@
  */
 
 const db = require('../db')
+const log = require('../log')
 const games = require('../game')
 const Discord = require('discord.js')
-const log = require('better-node-file-logger')
 const { hideOption, getHideResult, strip } = require('../helpers')
 
 const getNextWord = (interaction, hide) => {

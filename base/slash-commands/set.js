@@ -5,17 +5,17 @@
  */
 
 const db = require('../db')
+const log = require('../log')
 const games = require('../game')
 const Discord = require('discord.js')
 const { isAdmin } = require('../helpers')
-const log = require('better-node-file-logger')
 
 const setChannel = async interaction => {
     let channel = interaction.options.getChannel('channel')
     let sendResponse = await games.changeChannel(interaction, channel)
     if (sendResponse !== undefined) {
         interaction.reply({content: `Chain channel set to <#${channel.id}>.`, ephemeral: sendResponse})
-        log.info(`New chain channel set in '${interaction.guild.name}'`, interaction.channel.name)
+        log.info(`New chain channel set in '${interaction.guild.name}'`, interaction.channel.name, true)
     }
 }
 

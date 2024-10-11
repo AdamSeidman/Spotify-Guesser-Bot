@@ -7,8 +7,8 @@
 const sqlite3 = require('sqlite3').verbose()
 const { copyObject } = require('./helpers')
 const config = require('../client/config')
-const log = require('better-node-file-logger')
 const Discord = require('discord.js')
+const log = require('./log')
 
 const dbName = 'trackChains'
 const savedGamesTable = 'SavedGames'

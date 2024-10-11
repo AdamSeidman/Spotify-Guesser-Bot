@@ -5,10 +5,10 @@
  */
 
 const fs = require('fs')
+const log = require('./log')
 const config = require('../client/config')
 const { randomArrayItem, strip } = require('./helpers')
 const SpotifyWebApi = require('spotify-web-api-node')
-const log = require('better-node-file-logger')
 
 var spotifyApi = undefined
 var accessToken = ''
@@ -40,7 +40,7 @@ const refreshSpotifyToken = () => {
             })
         },
         err => {
-            log.error('Could not refresh access token')
+            log.error('Could not refresh access token', err, true)
             throw err
         })
 }

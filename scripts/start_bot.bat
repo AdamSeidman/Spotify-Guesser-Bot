@@ -7,9 +7,9 @@ SET /P titlequery=<temp.txt
 IF NOT "%titlequery%" == "INFO: No tasks are running which match the specified criteria." (GOTO HasInst)
 
 :CreateBot
-REM ECHO.
-REM ECHO Pulling new changes...
-REM GIT pull
+ECHO.
+ECHO Pulling new changes...
+GIT pull
 ECHO.
 ECHO Initializing...
 ECHO.

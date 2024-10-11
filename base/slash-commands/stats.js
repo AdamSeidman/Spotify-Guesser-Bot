@@ -123,11 +123,9 @@ var showGuildStats = async function(interaction) {
     let valueArray = []
     Object.keys(maxScores).forEach(x => {
         let map = {}
-        map[x] = maxScores[x].score - 1
-        valueArray.push({
-            key: x,
-            score: maxScores[x].score - 1
-        })
+        map[maxScores[x].name] = maxScores[x].score - 1
+        map.key = maxScores[x].key
+        valueArray.push(map)
     })
     valueArray.sort((a, b) => {
         let scoreA = a[Object.keys(a)[0]]

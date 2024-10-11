@@ -15,7 +15,7 @@ const setChannel = async interaction => {
     let sendResponse = await games.changeChannel(interaction, channel)
     if (sendResponse !== undefined) {
         interaction.reply({content: `Chain channel set to <#${channel.id}>.`, ephemeral: sendResponse})
-        log.info(`New chain channel set in '${interaction.guild.name}'`, interaction.channel.name, true)
+        log.info(`New chain channel set in '${interaction.guild.name}'`, channel.name, true)
     }
 }
 

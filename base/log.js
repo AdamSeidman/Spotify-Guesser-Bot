@@ -9,7 +9,7 @@ const config = require('../client/config')
 const log = require('better-node-file-logger')
 
 const announce = str => {
-    if ((typeof config.discord.communityServerId !== 'string') || (typeof config.discord.announcementChannelId != 'string')) {
+    if (typeof config.discord.announcementChannelId != 'string') {
         return
     }
     let channel = require('../client/client').client.channels.cache

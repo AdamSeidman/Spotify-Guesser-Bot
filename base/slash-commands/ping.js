@@ -22,7 +22,7 @@ module.exports = {
         let embed = new Discord.EmbedBuilder()
             .setColor(config.options.embedColor)
             .setTitle('Ping Time')
-            .setDescription(`Latency is ${time}ms.`)
+            .setDescription(`Latency is ${time} ms.`)
             .setTimestamp()
         interaction.reply({ embeds: [embed], ephemeral: getHideResult(interaction) })
     },

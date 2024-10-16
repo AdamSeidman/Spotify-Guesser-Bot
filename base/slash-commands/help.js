@@ -77,7 +77,8 @@ The playlist title will include the name of your server and the cover art will b
 \`/shuffle\`: Shuffles the first song in a chain. Must be enabled on the server.
 \`/song-info [track]([hide])\`: Get details of a specific song from Spotify.
 \`/stats server ([hide])\`: Get server statistics.
-\`/stats user [user]([hide])\`: Get statistics about a user. Leaving the user blank gets your own statistics.`
+\`/stats user [user]([hide])\`: Get statistics about a user. Leaving the user blank gets your own statistics.
+\`/uptime\`: Get amount of time the bot has been online this session.`
     }
 ]
 

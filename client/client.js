@@ -42,6 +42,11 @@ bot.on('messageCreate', async msg => {
     }
 })
 
+bot.on('guildCreate', guild => {
+    if (guild === undefined) return
+    log.info('Added to server!', guild.name, true)
+})
+
 bot.on('interactionCreate', interaction => {
     if (interaction.member === null) {
         interaction.reply('Interactions/Commands are only available within servers.')

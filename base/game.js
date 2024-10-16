@@ -199,7 +199,7 @@ var changeChannel = async function(msg, channel) {
     }
     else {
         let track = await createGame(msg, channel.id)
-        log.info('Started first game in new server!', msg.guild.name, true)
+        log.info('Started first game in new server!', msg.guild.name)
         channel.send(`Start the game with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
         return true
     }

@@ -27,7 +27,8 @@
         "maxLeaderboardSlots": 20,
         "maxHistorySlots": 20,
         "maxGuildFavoriteSongs": 10,
-        "adminRestartPhrase": "sgbrestart"
+        "adminRestartPhrase": "sgbrestart",
+        "logReadyMessage": true
     },
     "randomTrackTerms": ["the", "if", "who", "we", "where", "why", "an", "he", "she", "you", "love", "to", "is", "in", 
         "there", "what", "when", "how", "too", "for", "far", "him", "his", "hers", "her", "song"]

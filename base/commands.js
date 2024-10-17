@@ -44,7 +44,8 @@ const processMessage = async msg => {
         if (res === undefined) {
             await msg.react('✅')
             await msg.react('🎵')
-            if (msg.content.includes('-') && reqHandling.peekLength(msg.guild.id) === 1) {
+            let hasChar = msg.content.includes('-') || msg.content.trim().slice(-1) != strip(msg.content).slice(-1)
+            if (hasChar && reqHandling.peekLength(msg.guild.id) === 1) {
                 msg.channel.send(`The next word is \`${
                     strip(track.name.split(' ').slice(-1)[0].toLowerCase())
                 }\`.`)

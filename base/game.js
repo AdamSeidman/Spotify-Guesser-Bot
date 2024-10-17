@@ -45,7 +45,7 @@ var getTrack = function(gameKey, num) {
 }
 
 var getShortName = function(track) {
-    return strip(track.name).trim().toLowerCase()
+    return `${strip(track.name).trim().toLowerCase()} - ${strip(track.artist).trim().toLowerCase()}`
 }
 
 var createGame = async function(msg, channelId) {

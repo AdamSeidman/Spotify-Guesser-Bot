@@ -25,11 +25,15 @@ const trackDetailsEmbed = track => {
             value: Discord.userMention(track.memberId)
         })
     }
+    let artist = `*${escapeDiscordString(track.artist)}*`
+    if (track.fullArtistList !== undefined) {
+        artist = track.fullArtistList.join(', ')
+    }
     return new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(escapeDiscordString(track.name))
         .setURL(track.url)
-        .setDescription(`*${escapeDiscordString(track.artist)}*`)
+        .setDescription(artist)
         .addFields(...fields)
         .setThumbnail(track.images[0].url)
         .setFooter({text: `Released: ${track.releaseDate}`})

@@ -16,7 +16,7 @@ const ACCESS_TOKEN_FILE = 'client/token.txt'
 
 const makeTrack = rawTrack => {
     if (rawTrack === undefined || rawTrack.artists === undefined) return
-    return {
+    let ret = {
         full: `"${rawTrack.name}" - ${rawTrack.artists[0].name}`,
         name: rawTrack.name,
         artist: rawTrack.artists[0].name,
@@ -28,6 +28,10 @@ const makeTrack = rawTrack => {
         popularity: rawTrack.popularity,
         images: rawTrack.album.images
     }
+    if ( rawTrack.artists !== undefined && rawTrack.artists.length > 1 ) {
+        ret.fullArtistList = rawTrack.artists.map(x => x.name)
+    }
+    return ret
 }
 
 const refreshSpotifyToken = () => {

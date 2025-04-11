@@ -47,6 +47,9 @@ const refreshSpotifyToken = () => {
             log.error('Could not refresh access token', null, err, true)
             throw err
         })
+        .catch((err) => {
+            log.error(err, 'refreshSpotifyToken', true)
+        })
 }
 
 const start = async () => {
@@ -88,12 +91,13 @@ const getAllTracks = searchTerm => {
                 if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
                     spotifyApi.searchTracks(searchTerm, {offset:(data.body.tracks.offset + data.body.tracks.limit)})
                         .then(callback, reject)
+                        .catch(reject)
                 }
                 else {
                     resolve(buf)
                 }
             }
-            spotifyApi.searchTracks(searchTerm).then(callback, reject)
+            spotifyApi.searchTracks(searchTerm).then(callback, reject).catch(reject)
         }
     })
 }
@@ -163,13 +167,14 @@ const getTrack = (track, peek) => {
                 else {
                     spotifyApi.searchTracks(track, {offset: (data.body.tracks.offset + data.body.tracks.limit)})
                         .then(callback, reject)
+                        .catch(reject)
                 }
             }
             else {
                 resolve()
             }
         }
-        spotifyApi.searchTracks(track).then(callback, reject)
+        spotifyApi.searchTracks(track).then(callback, reject).catch(reject)
     })
 }
 
@@ -220,12 +225,13 @@ const getTrackByArtist = track => {
                 else if ((data.body.tracks.offset + data.body.tracks.limit) < data.body.tracks.total) {
                     spotifyApi.searchTracks(track, {offset: (data.body.tracks.offset + data.body.tracks.limit)})
                         .then(callback, reject)
+                        .catch(reject)
                 }
                 else {
                     resolve()
                 }
             }
-            spotifyApi.searchTracks(track).then(callback, reject)
+            spotifyApi.searchTracks(track).then(callback, reject).catch(reject)
         }
     })
 }
@@ -266,14 +272,14 @@ const getRandomTrack = async () => {
                                         }
                                         resolve(makeTrack(foundTrack))
                                         return true
-                                    }, reject)
+                                    }, reject).catch(reject)
                                 }
                             }
                             return false
                         })
                     }
-                }, reject)
-            }, reject)
+                }, reject).catch(reject)
+            }, reject).catch(reject)
         })
     }
     while (track === undefined || track.artist === undefined || track.name.slice(-1).match(/[a-z]/i) === null || isDirty(track.name)) {
@@ -311,13 +317,14 @@ const getFirstTrack = async (word, exclusions) => {
                 else {
                     spotifyApi.searchTracks(strip(word), {offset: (data.body.tracks.offset + data.body.tracks.limit)})
                         .then(callback, reject)
+                        .catch(reject)
                 }
             }
             else {
                 resolve()
             }
         }
-        spotifyApi.searchTracks(strip(word)).then(callback, reject)
+        spotifyApi.searchTracks(strip(word)).then(callback, reject).catch(reject)
     })
 }
 

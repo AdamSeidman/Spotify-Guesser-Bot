@@ -52,7 +52,7 @@ const confirmAction = interaction => {
             if (index !== -1) {
                 challengeSemaphores.splice(index, 1)
             }
-        })
+        }).catch(log.error)
     }
 }
 

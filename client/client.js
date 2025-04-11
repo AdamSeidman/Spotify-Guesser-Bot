@@ -46,6 +46,23 @@ bot.on('messageCreate', async msg => {
 bot.on('guildCreate', guild => {
     if (guild === undefined) return
     log.info('Added to server!', guild.name, true)
+    try {
+        let channelId
+        let channels = guild.channels.cache
+
+        channelLoop:
+        for (let key in channels) {
+            let c = channels[key]
+            if (c[1].type === 'text') {
+                channelId = c[0]
+                break channelLoop
+            }
+        }
+
+        guild.channels.cache.get(guild.systemChannelId || channelId).send('Hi- Use /help to get more information on how to use this bot!')
+    } catch (err) {
+        log.error('Could not send welcome message', 'guildCreate', err)
+    }
 })
 
 bot.on('interactionCreate', interaction => {

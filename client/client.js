@@ -24,6 +24,7 @@ bot.on('ready', async () => {
     spotify.start()
     await commands.registerSlashCommands(bot)
     await game.initGames()
+    require('../base/status')
     log.info('Bot Initialized.', 'onReady', config.options.logReadyMessage)
 })
 

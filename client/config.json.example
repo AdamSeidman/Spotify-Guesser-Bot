@@ -20,6 +20,7 @@
         "clientId": "ABC123",
         "credentialUpdateInterval": 1790000
     },
+    "statusPort": 8080,
     "options": {
         "maxSearchPages": 45,
         "embedColor": "#34EB3A",

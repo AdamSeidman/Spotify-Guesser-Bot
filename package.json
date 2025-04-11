@@ -12,6 +12,7 @@
     "better-node-file-logger": "^1.0.4",
     "discord.js": "^14.10.2",
     "express": "^5.1.0",
+    "obscenity": "^0.4.3",
     "poop-sock": "^1.0.7",
     "request": "^2.88.2",
     "spotify-web-api-node": "^5.0.2",

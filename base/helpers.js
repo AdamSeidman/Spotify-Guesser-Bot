@@ -4,8 +4,14 @@
  * Author: Adam Seidman
  */
 const utils = require('poop-sock')
+const Obscenity = require('obscenity')
 const { ActionRowBuilder } = require('discord.js')
 const wait = require('node:timers/promises').setTimeout
+
+const obscenityMatcher = new Obscenity.RegExpMatcher({
+    ...Obscenity.englishDataset.build(),
+    ...Obscenity.englishRecommendedTransformers,
+})
 
 module.exports = {
     strip: str => {
@@ -55,5 +61,9 @@ module.exports = {
         if (obj === undefined || typeof obj !== 'object') return obj
         return utils.copyObject(obj)
     },
-    escapeDiscordString: str => str.replace(/(\*|_|`|~|\\)/g, '\\$1')
+    escapeDiscordString: str => str.replace(/(\*|_|`|~|\\)/g, '\\$1'),
+    isDirty: str => {
+        if (typeof str !== 'string') return
+        return obscenityMatcher.hasMatch(str)
+    }
 }

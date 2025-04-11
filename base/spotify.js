@@ -7,7 +7,7 @@
 const fs = require('fs')
 const log = require('./log')
 const config = require('../client/config')
-const { randomArrayItem, strip } = require('./helpers')
+const { randomArrayItem, strip, isDirty } = require('./helpers')
 const SpotifyWebApi = require('spotify-web-api-node')
 
 var spotifyApi = undefined
@@ -276,7 +276,7 @@ const getRandomTrack = async () => {
             }, reject)
         })
     }
-    while (track === undefined || track.artist === undefined || track.name.slice(-1).match(/[a-z]/i) === null) {
+    while (track === undefined || track.artist === undefined || track.name.slice(-1).match(/[a-z]/i) === null || isDirty(track.name)) {
         try {
             track = await subProcess()
         }

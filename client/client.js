@@ -65,6 +65,10 @@ bot.on('guildCreate', guild => {
     }
 })
 
+bot.on('guildDelete', guild => {
+    log.info('Removed from server.', guild?.name || '(unknown)', true)
+})
+
 bot.on('interactionCreate', interaction => {
     if (interaction.member === null) {
         interaction.reply('Interactions/Commands are only available within servers.')

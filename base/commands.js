@@ -20,27 +20,33 @@ var buttonHooks = {}
 var buttonActionHooks = {}
 var dropdownHooks = {}
 
+const MAX_QUERY_LENGTH = 100
+
 const processMessage = async msg => {
     let rules = await db.getServerRules(msg.guild.id)
     if (msg.content.trim().startsWith(rules.prefix)) {
-        let game = games.getGame(msg.guild.id)
-        if (game === undefined || game.channelId !== msg.channel.id) return
-        let track = msg.content.substring(msg.content.toLowerCase().indexOf(
-            rules.prefix.toLowerCase()) + rules.prefix.length).trim()
-        if (track === undefined || track.length < 1) return
-
-        let resultingTrack = undefined
-        if ( !rules['artist-required'] ) {
-            resultingTrack = await spotify.getTrack(track, true)
+        let res = null
+        let track = undefined
+        if (msg.content.trim().length <= (MAX_QUERY_LENGTH  + rules.prefix.length)) {
+            let game = games.getGame(msg.guild.id)
+            if (game === undefined || game.channelId !== msg.channel.id) return
+            track = msg.content.substring(msg.content.toLowerCase().indexOf(
+                rules.prefix.toLowerCase()) + rules.prefix.length).trim()
+            if (track === undefined || track.length < 1) return
+    
+            let resultingTrack = undefined
+            if ( !rules['artist-required'] ) {
+                resultingTrack = await spotify.getTrack(track, true)
+            }
+            if ( resultingTrack === undefined ) {
+                resultingTrack = await spotify.getTrackByArtist(track)
+            }
+            if ( resultingTrack === undefined && !rules['artist-required'] ) {
+                resultingTrack = await spotify.getTrack(track)
+            }
+            track = resultingTrack
+            res = await games.guess(msg, track)
         }
-        if ( resultingTrack === undefined ) {
-            resultingTrack = await spotify.getTrackByArtist(track)
-        }
-        if ( resultingTrack === undefined && !rules['artist-required'] ) {
-            resultingTrack = await spotify.getTrack(track)
-        }
-        track = resultingTrack
-        let res = await games.guess(msg, track)
         if (res === undefined) {
             await msg.react('✅')
             await msg.react('🎵')

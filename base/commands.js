@@ -25,7 +25,7 @@ const MAX_QUERY_LENGTH = 100
 const processMessage = async msg => {
     let rules = await db.getServerRules(msg.guild.id)
     if (msg.content.trim().startsWith(rules.prefix)) {
-        let res = null
+        let res = ['', '']
         let track = undefined
         if (msg.content.trim().length <= (MAX_QUERY_LENGTH  + rules.prefix.length)) {
             let game = games.getGame(msg.guild.id)
@@ -46,6 +46,8 @@ const processMessage = async msg => {
             }
             track = resultingTrack
             res = await games.guess(msg, track)
+        } else {
+            res = await games.guess(msg, 0, true)
         }
         if (res === undefined) {
             await msg.react('✅')

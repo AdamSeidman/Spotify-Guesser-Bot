@@ -116,17 +116,20 @@ var failure = async function(msg, failureReason) {
     }
 }
 
-var guess = async function(msg, track) {
+var guess = async function(msg, track, bypass) {
     let game = getGame(msg.guild.id)
     if (game === undefined) return 'Unknown Error!'
-    let rules = await db.getServerRules(msg.guild.id)
+    let rules = undefined
+    if (!bypass) {
+        rules = await db.getServerRules(msg.guild.id)
+    }
     let ruinedMsg = `${Discord.userMention(msg.member.id)} RUINED IT AT ${Discord.bold(game.count)}!!`
-    if (game.lastMemberId === msg.member.id) {
+    if (!bypass && game.lastMemberId === msg.member.id) {
         let ruinedReason = Discord.bold('No going twice.')
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]
     }
-    if (track === undefined || track.artist === undefined) {
+    if (bypass || track === undefined || track.artist === undefined) {
         let ruinedReason = Discord.bold('Track not recognized.')
         await closeGame(game, msg.member.id, ruinedReason)
         return [ruinedMsg, ruinedReason]

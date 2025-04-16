@@ -35,14 +35,16 @@ const processMessage = async msg => {
             if (track === undefined || track.length < 1) return
     
             let resultingTrack = undefined
+            let possibleTracks = []
             if ( !rules['artist-required'] ) {
-                resultingTrack = await spotify.getTrack(track, true)
+                possibleTracks.push(spotify.getTrack(track, true))
             }
-            if ( resultingTrack === undefined ) {
-                resultingTrack = await spotify.getTrackByArtist(track)
+            possibleTracks.push(spotify.getTrackByArtist(track))
+            if ( !rules['artist-required'] ) {
+                possibleTracks.push(spotify.getTrack(track))
             }
-            if ( resultingTrack === undefined && !rules['artist-required'] ) {
-                resultingTrack = await spotify.getTrack(track)
+            while ( resultingTrack === undefined && possibleTracks.length > 0 ) {
+                resultingTrack = await possibleTracks.shift()
             }
             track = resultingTrack
             res = await games.guess(msg, track)

@@ -4,9 +4,9 @@
  * Author: Adam Seidman
  */
 
-const Discord = require('discord.js')
-const config = require('../../client/config')
-const { hideOption, getHideResult } = require('../helpers')
+const Discord = require('discord.js');
+const config = require('../../client/config');
+const { hideOption, getHideResult } = require('../helpers');
 
 module.exports = {
     phrase: 'about',
@@ -14,22 +14,22 @@ module.exports = {
         .setName('about')
         .setDescription('See information about the bot.')
         .addStringOption(hideOption),
-    execute: interaction => {
+    execute: (interaction) => {
         let embed = new Discord.EmbedBuilder()
             .setColor(config.options.embedColor)
             .setTitle('About Song Chains Bot')
             .setFields({
                 name: 'Community Server',
-                value: '[Invite Link](https://discord.gg/7fC8BkX6RW)'
+                value: '[Invite Link](https://discord.gg/7fC8BkX6RW)',
             },{
                 name: 'GitHub Repository',
-                value: '[GitHub](https://github.com/AdamSeidman/Spotify-Guesser-Bot)'
+                value: '[GitHub](https://github.com/AdamSeidman/Spotify-Guesser-Bot)',
             }, {
                 name: 'Copyright',
-                value: '© 2024 Adam Seidman'
+                value: `© 2024-${new Date().getFullYear()} Adam Seidman`,
             })
-            .setTimestamp()
-        interaction.reply({ embeds: [embed], ephemeral: getHideResult(interaction) })
+            .setTimestamp();
+        interaction.reply({ embeds: [embed], ephemeral: getHideResult(interaction) });
     },
-    immediate: true
-}
+    immediate: true,
+};

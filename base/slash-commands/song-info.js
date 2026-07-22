@@ -24,18 +24,18 @@ module.exports = {
     execute: async interaction => {
         await interaction.deferReply({ ephemeral: getHideResult(interaction) })
         let title = interaction.options.getString('track')
-        let track = await spotify.getTrack( title, true )
+        let track = await spotify.getTrack( title, 10 );
         if ( track === undefined ) {
-            track = await spotify.getTrackByArtist( title )
+            track = await spotify.getTrackByArtist( title );
         }
         if ( track === undefined ) {
-            track = await spotify.getTrack( title )
+            track = await spotify.getTrack( title );
         }
         if ( track ) {
-            interaction.editReply({embeds: [trackDetailsEmbed(track)]})
+            interaction.editReply({embeds: [trackDetailsEmbed(track)]});
         }
         else {
-            interaction.editReply(`Could not find \`${title}\``)
+            interaction.editReply(`Could not find \`${title}\``);
         }
     },
     immediate: true

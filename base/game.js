@@ -4,62 +4,62 @@
  * Author: Adam Seidman
  */
 
-const db = require('./db')
-const log = require('./log')
-const spotify = require('./spotify')
-const Discord = require('discord.js')
-const config = require('../client/config')
-const { strip, escapeDiscordString } = require('./helpers')
+const db = require('./db');
+const log = require('./log');
+const spotify = require('./spotify');
+const Discord = require('discord.js');
+const config = require('../client/config');
+const { strip, escapeDiscordString } = require('./helpers');
 
-var map = {}
-var history = {}
+var map = {};
+var history = {};
 
 var initGames = async function() {
-    let cachedHistories = await db.getSavedHistories()
-    let cachedGames = await db.getSavedGames()
-    if (cachedHistories === undefined) return
+    let cachedHistories = await db.getSavedHistories();
+    let cachedGames = await db.getSavedGames();
+    if (cachedHistories === undefined) return;
     Object.keys(cachedHistories).forEach(x => {
-        history[x] = cachedHistories[x]
-    })
+        history[x] = cachedHistories[x];
+    });
     if (cachedGames !== undefined) {
         Object.keys(cachedHistories).forEach(x => {
             if (cachedGames[x] !== undefined) {
-                map[x] = cachedGames[x]
+                map[x] = cachedGames[x];
             }
-        })
+        });
     }
     else {
-        log.warn('Could not find cached games!', (cachedHistories === undefined), true)
+        log.warn('Could not find cached games!', (cachedHistories === undefined), true);
     }
-}
+};
 
 var getGame = function(id) {
-    return map[`#${id}`]
-}
+    return map[`#${id}`];
+};
 
 var getTrack = function(gameKey, num) {
-    if (typeof gameKey !== 'string' || typeof num !== 'number') return
-    let hist = history[gameKey]
-    if (hist === undefined || hist.list === undefined) return
-    return hist.list[num]
-}
+    if (typeof gameKey !== 'string' || typeof num !== 'number') return;
+    let hist = history[gameKey];
+    if (hist === undefined || hist.list === undefined) return;
+    return hist.list[num];
+};
 
 var getShortName = function(track) {
     //return `${strip(track.name).trim().toLowerCase()} - ${strip(track.artist).trim().toLowerCase()}`
-    return strip(track.name).trim().toLowerCase()
-}
+    return strip(track.name).trim().toLowerCase();
+};
 
 var createGame = async function(msg, channelId) {
     if (msg === undefined) {
-        return
+        return;
     }
-    let game = getGame(msg.guild.id)
+    let game = getGame(msg.guild.id);
     if (game !== undefined) {
-        log.warn('Tried to create a game twice?')
-        msg.reply('There is already a game going on!')
-        return
+        log.warn('Tried to create a game twice?');
+        msg.reply('There is already a game going on!');
+        return;
     }
-    let track = await spotify.getRandomTrack()
+    let track = await spotify.getRandomTrack();
     game = {
         key: `#${msg.guild.id}`,
         channelId: channelId || msg.channel.id,
@@ -67,147 +67,147 @@ var createGame = async function(msg, channelId) {
         usedTracks: [getShortName(track)],
         currentTrack: track,
         count: 0,
-    }
+    };
     let hist = {
         key: `#${msg.guild.id}`,
         list: [track],
-        guildName: escapeDiscordString(msg.guild.name)
-    }
-    map[game.key] = game
-    history[hist.key] = hist
-    db.createHistory(hist)
-    db.createGame(game)
-    return track
-}
+        guildName: escapeDiscordString(msg.guild.name),
+    };
+    map[game.key] = game;
+    history[hist.key] = hist;
+    db.createHistory(hist);
+    db.createGame(game);
+    return track;
+};
 
 var addBotTrack = async function(msg) {
-    if (msg === undefined) return
-    let game = getGame(msg.guild.id)
-    if (game === undefined) return
-    let track = await spotify.getRandomTrack()
-    game.usedTracks.push( getShortName(track) )
+    if (msg === undefined) return;
+    let game = getGame(msg.guild.id);
+    if (game === undefined) return;
+    let track = await spotify.getRandomTrack();
+    game.usedTracks.push( getShortName(track) );
     history[game.key].list.push({
         ...track,
-        memberId: config.discord.botId
-    })
+        memberId: config.discord.botId,
+    });
     if (game.usedTracks.length > config.options.minRepeatGuesses) {
-        game.usedTracks.shift()
+        game.usedTracks.shift();
     }
-    game.currentTrack = track
-    game.lastMemberId = config.discord.botId
-    game.count = game.count + 1
-    await db.updateGame(game)
-    await db.updateHistory(history[game.key])
-    return track
-}
+    game.currentTrack = track;
+    game.lastMemberId = config.discord.botId;
+    game.count = game.count + 1;
+    await db.updateGame(game);
+    await db.updateHistory(history[game.key]);
+    return track;
+};
 
 var closeGame = async function(game, memberId, ruinedReason) {
-    if (game === undefined) return
-    await db.deleteGame(game)
-    await db.makeHistoryPermanent(history[game.key], memberId, ruinedReason)
-    delete map[game.key]
-}
+    if (game === undefined) return;
+    await db.deleteGame(game);
+    await db.makeHistoryPermanent(history[game.key], memberId, ruinedReason);
+    delete map[game.key];
+};
 
 var failure = async function(msg, failureReason) {
-    if (msg === undefined || failureReason === undefined) return
-    let game = getGame(msg.guild.id)
+    if (msg === undefined || failureReason === undefined) return;
+    let game = getGame(msg.guild.id);
     if (game !== undefined) {
-        await closeGame(game, msg.member.id, `${Discord.bold(failureReason)}`)
+        await closeGame(game, msg.member.id, `${Discord.bold(failureReason)}`);
     }
-}
+};
 
 var guess = async function(msg, track, bypass) {
-    let game = getGame(msg.guild.id)
-    if (game === undefined) return 'Unknown Error!'
-    let rules = undefined
+    let game = getGame(msg.guild.id);
+    if (game === undefined) return 'Unknown Error!';
+    let rules = undefined;
     if (!bypass) {
-        rules = await db.getServerRules(msg.guild.id)
+        rules = await db.getServerRules(msg.guild.id);
     }
-    let ruinedMsg = `${Discord.userMention(msg.member.id)} RUINED IT AT ${Discord.bold(game.count)}!!`
+    let ruinedMsg = `${Discord.userMention(msg.member.id)} RUINED IT AT ${Discord.bold(game.count)}!!`;
     if (!bypass && game.lastMemberId === msg.member.id) {
-        let ruinedReason = Discord.bold('No going twice.')
-        await closeGame(game, msg.member.id, ruinedReason)
-        return [ruinedMsg, ruinedReason]
+        let ruinedReason = Discord.bold('No going twice.');
+        await closeGame(game, msg.member.id, ruinedReason);
+        return [ruinedMsg, ruinedReason];
     }
     if (bypass || track === undefined || track.artist === undefined) {
-        let ruinedReason = Discord.bold('Track not recognized.')
-        await closeGame(game, msg.member.id, ruinedReason)
-        return [ruinedMsg, ruinedReason]
+        let ruinedReason = Discord.bold('Track not recognized.');
+        await closeGame(game, msg.member.id, ruinedReason);
+        return [ruinedMsg, ruinedReason];
     }
-    let shortName = getShortName(track)
+    let shortName = getShortName(track);
     if (shortName.split(' ').length <= 1 && !rules['single-words-allowed']) {
-        let ruinedReason = Discord.bold('No single words.')
-        await closeGame(game, msg.member.id, ruinedReason)
-        return [ruinedMsg, ruinedReason]
+        let ruinedReason = Discord.bold('No single words.');
+        await closeGame(game, msg.member.id, ruinedReason);
+        return [ruinedMsg, ruinedReason];
     }
     if (game.usedTracks.includes(shortName)) {
-        let ruinedReason = Discord.bold(`No repeats within ${config.options.minRepeatGuesses} tracks.`)
-        await closeGame(game, msg.member.id, ruinedReason)
-        return [ruinedMsg, ruinedReason]
+        let ruinedReason = Discord.bold(`No repeats within ${config.options.minRepeatGuesses} tracks.`);
+        await closeGame(game, msg.member.id, ruinedReason);
+        return [ruinedMsg, ruinedReason];
     }
     if (game.currentTrack.name.length > 0 && !shortName.split(' ').includes(getShortName(game.currentTrack).split(' ').slice(-1)[0])) {
-        let ruinedReason = Discord.bold('Wrong word.')
-        await closeGame(game, msg.member.id, ruinedReason)
-        return [ruinedMsg, ruinedReason]
+        let ruinedReason = Discord.bold('Wrong word.');
+        await closeGame(game, msg.member.id, ruinedReason);
+        return [ruinedMsg, ruinedReason];
     }
-    game.usedTracks.push( getShortName(track) )
+    game.usedTracks.push( getShortName(track) );
     history[game.key].list.push({
         ...track,
         memberId: msg.member.id
-    })
+    });
     if (game.usedTracks.length > config.options.minRepeatGuesses) {
-        game.usedTracks.shift()
+        game.usedTracks.shift();
     }
-    game.currentTrack = track
-    game.lastMemberId = msg.member.id
-    game.count = game.count + 1
-    await db.updateGame(game)
-    await db.updateHistory(history[game.key])
-}
+    game.currentTrack = track;
+    game.lastMemberId = msg.member.id;
+    game.count = game.count + 1;
+    await db.updateGame(game);
+    await db.updateHistory(history[game.key]);
+};
 
 var getHistory = function(id) {
-    return history[`#${id}`]
-}
+    return history[`#${id}`];
+};
 
 var shuffle = async function(msg) {
-    let game = getGame(msg.guild.id)
+    let game = getGame(msg.guild.id);
     if (game === undefined || msg.channel === undefined || `${msg.channel.id}` !== `${game.channelId}`) {
-        msg.reply('There is no game going on.')
-        return
+        msg.reply('There is no game going on.');
+        return;
     }
     else if (game.count > 0) {
-        msg.reply({content: 'You cannot shuffle once the chain has started!', ephemeral: true})
-        return
+        msg.reply({content: 'You cannot shuffle once the chain has started!', ephemeral: true});
+        return;
     }
-    delete map[game.key]
-    let track = await createGame(msg)
+    delete map[game.key];
+    let track = await createGame(msg);
     if (track === undefined || track.artist === undefined) {
-        log.error('Deleted a game?', msg.guild.id, 'Error Unknown', true)
-        msg.reply('Oops, I deleted your game! :(')
+        log.error('Deleted a game?', msg.guild.id, 'Error Unknown', true);
+        msg.reply('Oops, I deleted your game! :(');
     }
     else {
-        msg.reply(`New track picked! Start with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
+        msg.reply(`New track picked! Start with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`);
     }
-}
+};
 
 var changeChannel = async function(msg, channel) {
-    if (msg === undefined || channel === undefined) return
-    let game = getGame(msg.guild.id)
+    if (msg === undefined || channel === undefined) return;
+    let game = getGame(msg.guild.id);
     if (channel === undefined) {
-        log.warn('Unknown channel', channel)
-        msg.reply({content: 'Error! Could not find channel!', ephemeral: true})
+        log.warn('Unknown channel', channel);
+        msg.reply({content: 'Error! Could not find channel!', ephemeral: true});
     } else if (game) {
-        game.channelId = channel.id
-        await db.updateGame(game)
-        return false
+        game.channelId = channel.id;
+        await db.updateGame(game);
+        return false;
     }
     else {
-        let track = await createGame(msg, channel.id)
-        log.info('Started first game in new server!', msg.guild.name)
-        channel.send(`Start the game with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`)
-        return true
+        let track = await createGame(msg, channel.id);
+        log.info('Started first game in new server!', msg.guild.name);
+        channel.send(`Start the game with \`${track.full}\` (next word \`${track.name.toLowerCase().split(' ').slice(-1)[0]}\`).`);
+        return true;
     }
-}
+};
 
 module.exports = {
     initGames,
@@ -220,4 +220,4 @@ module.exports = {
     changeChannel,
     failure,
     addBotTrack
-}
+};

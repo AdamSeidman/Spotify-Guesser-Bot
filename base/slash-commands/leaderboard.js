@@ -4,15 +4,15 @@
  * Author: Adam Seidman
  */
 
-const db = require('../db')
-const log = require('../log')
-const Discord = require('discord.js')
-const config = require('../../client/config')
-const { getActionRow, copyObject, escapeDiscordString, hideOption, getHideResult } = require('../helpers')
+const db = require('../db');
+const log = require('../log');
+const Discord = require('discord.js');
+const config = require('../../client/config');
+const { getActionRow, copyObject, escapeDiscordString, hideOption, getHideResult } = require('../helpers');
 
-const leaderboardCache = []
+const leaderboardCache = [];
 
-var magicNumber = `X${Math.round(new Date().getTime() / 1000)}`
+var magicNumber = `X${Math.round(new Date().getTime() / 1000)}`;
 
 const disabledButtons = [
     {
@@ -35,16 +35,16 @@ const disabledButtons = [
             .setLabel('⏭️')
             .setStyle(Discord.ButtonStyle.Primary)
             .setCustomId('leaderboard_X1_3')
-    }
-]
+    },
+];
 
 disabledButtons.forEach(x => {
-    x.btn.data.disabled = true
-})
+    x.btn.data.disabled = true;
+});
 
 const getLeaderboardButtons = (idx, startVal) => {
     if (idx >= leaderboardCache.length || leaderboardCache[idx].list.length < config.options.maxLeaderboardSlots) {
-        return []
+        return [];
     }
     let buttons = [
         new Discord.ButtonBuilder()
@@ -64,157 +64,157 @@ const getLeaderboardButtons = (idx, startVal) => {
             .setLabel('⏭️')
             .setStyle(Discord.ButtonStyle.Primary)
     ].map(x => {
-        return { btn: x }
-    })
+        return { btn: x };
+    });
     if ( startVal == 0 ) {
-        buttons[0].btn.data.disabled = true
-        buttons[1].btn.data.disabled = true
+        buttons[0].btn.data.disabled = true;
+        buttons[1].btn.data.disabled = true;
     }
     else if (startVal + config.options.maxLeaderboardSlots >= leaderboardCache[idx].list.length) {
-        buttons[2].btn.data.disabled = true
-        buttons[3].btn.data.disabled = true
+        buttons[2].btn.data.disabled = true;
+        buttons[3].btn.data.disabled = true;
     }
     if (buttons.length > 0) {
-        return getActionRow(buttons)
+        return getActionRow(buttons);
     }
-    return buttons
-}
+    return buttons;
+};
 
 const newLeaderboardEmbed = (title, valueArray, userId) => {
-    let desc = []
-    let values = copyObject(valueArray)
-    leaderboardCache.push({title, list: valueArray, userId})
+    let desc = [];
+    let values = copyObject(valueArray);
+    leaderboardCache.push({title, list: valueArray, userId});
     while (values.length > 0 && desc.length < config.options.maxLeaderboardSlots) {
-        let item = values.shift()
-        let key = Object.keys(item)[0]
-        desc.push(`${desc.length + 1}. ${key} - ${Discord.bold(item[key])}`)
+        let item = values.shift();
+        let key = Object.keys(item)[0];
+        desc.push(`${desc.length + 1}. ${key} - ${Discord.bold(item[key])}`);
     }
-    let idx = leaderboardCache.length - 1
-    let buttons = getLeaderboardButtons(idx, 0)
+    let idx = leaderboardCache.length - 1;
+    let buttons = getLeaderboardButtons(idx, 0);
     return { embed: new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(title)
         .setDescription(desc.join('\n')),
-    buttons, idx }
-}
+    buttons, idx };
+};
 
 const cachedLeaderboardEmbed = (cachedVal, startVal) => {
-    if (cachedVal === undefined || cachedVal < 0 || cachedVal >= leaderboardCache.length) return
-    let desc = []
-    let values = copyObject(leaderboardCache[cachedVal].list).slice(startVal)
+    if (cachedVal === undefined || cachedVal < 0 || cachedVal >= leaderboardCache.length) return;
+    let desc = [];
+    let values = copyObject(leaderboardCache[cachedVal].list).slice(startVal);
     while (values.length > 0 && desc.length < config.options.maxLeaderboardSlots) {
-        let item = values.shift()
-        let key = Object.keys(item)[0]
-        desc.push(`${desc.length + 1 + startVal}. ${key} - ${Discord.bold(item[key])}`)
+        let item = values.shift();
+        let key = Object.keys(item)[0];
+        desc.push(`${desc.length + 1 + startVal}. ${key} - ${Discord.bold(item[key])}`);
     }
-    desc = desc.join('\n')
+    desc = desc.join('\n');
     return new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(leaderboardCache[cachedVal].title)
-        .setDescription(desc.length > 0? desc : ' ')
-}
+        .setDescription(desc.length > 0? desc : ' ');
+};
 
 const userLeaderboard = async (interaction, guildId, title) => {
-    let scores = await db.getAllScores(guildId)
-    let valueArray = []
-    Object.keys(scores).forEach(key => {
-        let map = {}
-        map[key] = scores[key]
-        valueArray.push(map)
-    })
+    let scores = await db.getAllScores(guildId);
+    let valueArray = [];
+    Object.keys(scores).forEach((key) => {
+        let map = {};
+        map[key] = scores[key];
+        valueArray.push(map);
+    });
     valueArray.sort((a, b) => {
-        let scoreA = a[Object.keys(a)[0]]
-        let scoreB = b[Object.keys(b)[0]]
-        return scoreB - scoreA
-    })
-    let leaderboard = newLeaderboardEmbed(title, valueArray, interaction.member.id)
-    interaction.editReply({embeds: [leaderboard.embed], components: leaderboard.buttons})
-}
+        let scoreA = a[Object.keys(a)[0]];
+        let scoreB = b[Object.keys(b)[0]];
+        return scoreB - scoreA;
+    });
+    let leaderboard = newLeaderboardEmbed(title, valueArray, interaction.member.id);
+    interaction.editReply({embeds: [leaderboard.embed], components: leaderboard.buttons});
+};
 
-const serverLeaderboard = interaction => {
+const serverLeaderboard = (interaction) => {
     userLeaderboard( interaction, interaction.guild.id, `User Leaderboard for \`${
-        escapeDiscordString(interaction.guild.name)}\`` )
-}
+        escapeDiscordString(interaction.guild.name)}\`` );
+};
 
-const globalUserLeaderboard = interaction => {
-    userLeaderboard( interaction, undefined, 'Global User Leaderboard' )
-}
+const globalUserLeaderboard = (interaction) => {
+    userLeaderboard( interaction, undefined, 'Global User Leaderboard' );
+};
 
-const globalServerLeaderboard = async interaction => {
-    let maxScores = await db.getGuildMaxScores()
-    let valueArray = []
+const globalServerLeaderboard = async (interaction) => {
+    let maxScores = await db.getGuildMaxScores();
+    let valueArray = [];
     Object.keys(maxScores).forEach(x => {
-        let map = {}
-        map[maxScores[x].name] = maxScores[x].score - 1
-        valueArray.push(map)
-    })
+        let map = {};
+        map[maxScores[x].name] = maxScores[x].score - 1;
+        valueArray.push(map);
+    });
     valueArray.sort((a, b) => {
-        let scoreA = a[Object.keys(a)[0]]
-        let scoreB = b[Object.keys(b)[0]]
-        return scoreB - scoreA
-    })
-    let leaderboard = newLeaderboardEmbed('Global Server Leaderboard', valueArray, interaction.member.id)
-    interaction.editReply({embeds: [leaderboard.embed]})
-}
+        let scoreA = a[Object.keys(a)[0]];
+        let scoreB = b[Object.keys(b)[0]];
+        return scoreB - scoreA;
+    });
+    let leaderboard = newLeaderboardEmbed('Global Server Leaderboard', valueArray, interaction.member.id);
+    interaction.editReply({embeds: [leaderboard.embed]});
+};
 
 const subCommands = {
     server: serverLeaderboard,
     'global-users': globalUserLeaderboard,
-    'global-servers': globalServerLeaderboard
-}
+    'global-servers': globalServerLeaderboard,
+};
 
 const updateBoard = (interaction, boardId, idx) => {
-    let embed = cachedLeaderboardEmbed(boardId, idx)
+    let embed = cachedLeaderboardEmbed(boardId, idx);
     if (embed) {
-        let components = getLeaderboardButtons(boardId, idx)
-        interaction.update({embeds: [embed], components})
+        let components = getLeaderboardButtons(boardId, idx);
+        interaction.update({embeds: [embed], components});
     } else {
-        interaction.reply({ content: 'Error updating the leaderboard.', ephemeral: true })
+        interaction.reply({ content: 'Error updating the leaderboard.', ephemeral: true });
     }
-}
+};
 
 const buttonActionFirst = (interaction, boardId) => {
-    updateBoard(interaction, boardId, 0)
-}
+    updateBoard(interaction, boardId, 0);
+};
 
 const buttonActionBack = (interaction, boardId, startIdx) => {
     if ( isNaN(startIdx) ) {
-        interaction.reply({ content: 'Could not find button interaction start index!', ephemeral: true })
-        return
+        interaction.reply({ content: 'Could not find button interaction start index!', ephemeral: true });
+        return;
     }
-    let idx = startIdx - config.options.maxLeaderboardSlots
-    updateBoard(interaction, boardId, idx < 0? 0 : idx)
-}
+    let idx = startIdx - config.options.maxLeaderboardSlots;
+    updateBoard(interaction, boardId, idx < 0? 0 : idx);
+};
 
 
 const buttonActionForward = (interaction, boardId, startIdx) => {
     if ( isNaN(startIdx) ) {
-        interaction.reply({ content: 'Could not find button interaction start index!', ephemeral: true })
-        return
+        interaction.reply({ content: 'Could not find button interaction start index!', ephemeral: true });
+        return;
     }
-    let idx = startIdx + config.options.maxLeaderboardSlots
+    let idx = startIdx + config.options.maxLeaderboardSlots;
     if (idx >= leaderboardCache[boardId].list.length) {
-        idx = leaderboardCache[boardId].list.length - 1
+        idx = leaderboardCache[boardId].list.length - 1;
     }
-    updateBoard(interaction, boardId, idx)
-}
+    updateBoard(interaction, boardId, idx);
+};
 
 const buttonActionLast = (interaction, boardId) => {
-    let size = leaderboardCache[boardId].list.length
-    let count = 0
+    let size = leaderboardCache[boardId].list.length;
+    let count = 0;
     while (size > config.options.maxLeaderboardSlots) {
-        size -= config.options.maxLeaderboardSlots
-        count++
+        size -= config.options.maxLeaderboardSlots;
+        count++;
     }
-    updateBoard(interaction, boardId, count * config.options.maxLeaderboardSlots)
-}
+    updateBoard(interaction, boardId, count * config.options.maxLeaderboardSlots);
+};
 
 const buttonActions = {
     first: buttonActionFirst,
     back: buttonActionBack,
     forward: buttonActionForward,
-    last: buttonActionLast
-}
+    last: buttonActionLast,
+};
 
 module.exports = {
     phrase: 'leaderboard',
@@ -239,37 +239,37 @@ module.exports = {
                 .setDescription('Show global statistics by server.')
                 .addStringOption(hideOption)
         ),
-    execute: async interaction => {
-        let sub = interaction.options.getSubcommand()
+    execute: async (interaction) => {
+        let sub = interaction.options.getSubcommand();
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
-            interaction.reply({ content: 'Could not find stats sub-command!', ephemeral: true })
+            interaction.reply({ content: 'Could not find stats sub-command!', ephemeral: true });
         }
-        await interaction.deferReply({ ephemeral: getHideResult(interaction) })
-        subCommands[sub](interaction)
+        await interaction.deferReply({ ephemeral: getHideResult(interaction) });
+        subCommands[sub](interaction);
     },
-    btnActionHandler: async interaction => {
+    btnActionHandler: async (interaction) => {
         if ( typeof interaction.customId !== 'string' ) {
-            log.error('No string args in handler!')
-            interaction.reply({ content: 'Internal Error!', ephemeral: true })
-            return
+            log.error('No string args in handler!');
+            interaction.reply({ content: 'Internal Error!', ephemeral: true });
+            return;
         }
-        let actionParts = interaction.customId.split('_')
+        let actionParts = interaction.customId.split('_');
         if ( actionParts[1] === undefined || actionParts[1] != magicNumber ) {
-            await interaction.update({components: getActionRow(disabledButtons)})
-            interaction.followUp({ content: 'This leaderboard has expired.\nPlease re-run the desired command.', ephemeral: true })
-            return
+            await interaction.update({components: getActionRow(disabledButtons)});
+            interaction.followUp({ content: 'This leaderboard has expired.\nPlease re-run the desired command.', ephemeral: true });
+            return;
         }
         if ( actionParts[2] === undefined || buttonActions[actionParts[2]] === undefined || actionParts[3] === undefined ) {
-            interaction.reply({ content: 'Could not find leaderboard or was invalid!', ephemeral: true })
-            return
+            interaction.reply({ content: 'Could not find leaderboard or was invalid!', ephemeral: true });
+            return;
         }
-        let idx = parseInt(actionParts[3])
+        let idx = parseInt(actionParts[3]);
         if ( isNaN(idx) || idx < 0 || idx >= leaderboardCache.length ) {
-            log.warn('Invalid parameters', actionParts)
-            interaction.reply({ content: 'Button interaction parameters were invalid.', ephemeral: true })
-            return
+            log.warn('Invalid parameters', actionParts);
+            interaction.reply({ content: 'Button interaction parameters were invalid.', ephemeral: true });
+            return;
         }
-        buttonActions[actionParts[2]](interaction, idx, parseInt(actionParts[4]))
+        buttonActions[actionParts[2]](interaction, idx, parseInt(actionParts[4]));
     },
-    immediate: true
-}
+    immediate: true,
+};

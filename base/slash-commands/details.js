@@ -4,30 +4,30 @@
  * Author: Adam Seidman
  */
 
-const games = require('../game')
-const Discord = require('discord.js')
-const { trackDetailsEmbed } = require('../embedBuilder')
-const { hideOption, getHideResult } = require('../helpers')
+const games = require('../game');
+const Discord = require('discord.js');
+const { trackDetailsEmbed } = require('../embedBuilder');
+const { hideOption, getHideResult } = require('../helpers');
 
-const getDetails = interaction => {
-    let game = games.getGame(interaction.guild.id)
+const getDetails = (interaction) => {
+    let game = games.getGame(interaction.guild.id);
     if (game === undefined) {
-        interaction.reply({content: 'There is no game in progress!', ephemeral: true})
+        interaction.reply({content: 'There is no game in progress!', ephemeral: true});
     }
 
-    let track = game.currentTrack
-    let trackNum = interaction.options.getInteger('track', false)
+    let track = game.currentTrack;
+    let trackNum = interaction.options.getInteger('track', false);
     if (trackNum) {
-        let ret = games.getTrack(game.key, trackNum)
-        if (ret) track = ret
+        let ret = games.getTrack(game.key, trackNum);
+        if (ret) track = ret;
     }
     if (track) {
-        interaction.reply({embeds: [trackDetailsEmbed(track)], ephemeral: getHideResult(interaction)})
+        interaction.reply({embeds: [trackDetailsEmbed(track)], ephemeral: getHideResult(interaction)});
     }
     else {
-        interaction.reply({content: 'Error! Could not find details.', ephemeral: true})
+        interaction.reply({content: 'Error! Could not find details.', ephemeral: true});
     }
-}
+};
 
 module.exports = {
     phrase: 'details',
@@ -43,5 +43,5 @@ module.exports = {
         )
         .addStringOption(hideOption),
     execute: getDetails,
-    immediate: true
-}
+    immediate: true,
+};

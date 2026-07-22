@@ -3,19 +3,19 @@
  * 
  * Author: Adam Seidman
  */
-const utils = require('poop-sock')
-const Obscenity = require('obscenity')
-const { ActionRowBuilder } = require('discord.js')
-const wait = require('node:timers/promises').setTimeout
+const utils = require('poop-sock');
+const Obscenity = require('obscenity');
+const { ActionRowBuilder } = require('discord.js');
+const wait = require('node:timers/promises').setTimeout;
 
 const obscenityMatcher = new Obscenity.RegExpMatcher({
     ...Obscenity.englishDataset.build(),
     ...Obscenity.englishRecommendedTransformers,
-})
+});
 
 module.exports = {
     strip: str => {
-        if (typeof str !== 'string') return ''
+        if (typeof str !== 'string') return '';
         // eslint-disable-next-line no-useless-escape
         return str.replace(/['!"#$%&\\'()\*+,\-\.\/:;<=>?@\[\\\]\^_`{|}~']/g, '')
             .replace(/\s{2,}/g, ' ')
@@ -23,47 +23,47 @@ module.exports = {
             .split('"').join('')
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
             .replaceAll('’', '')
-            .trim()
+            .trim();
     },
     randomArrayItem: utils.randomArrayItem,
     wait,
     getPercentage: (num, denom) => {
-        num /= denom
-        return `${Math.round((num + Number.EPSILON) * 10000) / 100}%`
+        num /= denom;
+        return `${Math.round((num + Number.EPSILON) * 10000) / 100}%`;
     },
-    getActionRow: btns => {
-        return [new ActionRowBuilder().addComponents(...btns.map(x => x.btn))]
+    getActionRow: (btns) => {
+        return [new ActionRowBuilder().addComponents(...btns.map(x => x.btn))];
     },
-    hideOption: option =>
+    hideOption: (option) =>
         option
             .setName('hide')
             .setDescription('Hide results from being shown publicly.')
             .addChoices({
                 name: 'yes',
-                value: 'yes'
+                value: 'yes',
             },{
                 name: 'no',
-                value: 'no'
+                value: 'no',
             })
             .setRequired(false),
     getHideResult: interaction => (interaction.options.getString('hide') === 'yes'),
     isAdmin: msg => {
-        if (msg === undefined || msg.member === undefined) return false
-        let isAdmin = false
+        if (msg === undefined || msg.member === undefined) return false;
+        let isAdmin = false;
         try {
-            let res = msg.member.permissionsIn(msg.channel).has('ADMINISTRATOR')
-            isAdmin = res
+            let res = msg.member.permissionsIn(msg.channel).has('ADMINISTRATOR');
+            isAdmin = res;
         // eslint-disable-next-line no-empty
         } catch (err) {}
-        return isAdmin
+        return isAdmin;
     },
     copyObject: obj => {
-        if (obj === undefined || typeof obj !== 'object') return obj
-        return utils.copyObject(obj)
+        if (obj === undefined || typeof obj !== 'object') return obj;
+        return utils.copyObject(obj);
     },
     escapeDiscordString: str => str.replace(/(\*|_|`|~|\\)/g, '\\$1'),
     isDirty: str => {
-        if (typeof str !== 'string') return
-        return obscenityMatcher.hasMatch(str)
+        if (typeof str !== 'string') return;
+        return obscenityMatcher.hasMatch(str);
     }
-}
+};

@@ -4,89 +4,94 @@
  * Author: Adam Seidman
  */
 
-const config = require('./config')
-const log = require('../base/log')
-const game = require('../base/game')
-const Discord = require('discord.js')
-const spotify = require('../base/spotify')
-const commands = require('../base/commands')
-const { strip } = require('../base/helpers')
-const reqHandling = require('../base/reqHandling')
+const config = require('./config');
+const log = require('../base/log');
+const game = require('../base/game');
+const Discord = require('discord.js');
+require('../base/spotify');
+const commands = require('../base/commands');
+const { strip } = require('../base/helpers');
+const reqHandling = require('../base/reqHandling');
 
 const bot = new Discord.Client({
     intents: config.discord.intents,
-    partials: config.discord.partials
-})
-bot.login(config.discord.token)
+    partials: config.discord.partials,
+});
+bot.login(config.discord.token);
 
 bot.on('ready', async () => {
-    log.init()
-    spotify.start()
-    await commands.registerSlashCommands(bot)
-    await game.initGames()
-    require('../base/status')
-    log.info('Bot Initialized.', 'onReady', config.options.logReadyMessage)
-})
+    log.init();
+    await commands.registerSlashCommands(bot);
+    await game.initGames();
+    require('../base/status');
+    log.info('Bot Initialized.', 'onReady', config.options.logReadyMessage);
+});
 
 bot.on('messageCreate', async msg => {
     if (msg.member === null && !msg.author.bot) {
-        log.info(`DM (${msg.author.username}): ${msg.content}`)
+        log.info(`DM (${msg.author.username}): ${msg.content}`);
     }
     else if (!msg.author.bot) {
         if (config.discord.adminId !== undefined && msg.member.id == config.discord.adminId && typeof config.options.adminRestartPhrase === 'string') {
             if (strip(msg.content.toLowerCase()).split(' ').join('') === config.options.adminRestartPhrase.toLowerCase()) {
-                log.info('Restart Requested', config.options.adminRestartPhrase)
-                process.exit()
+                log.info('Restart Requested', config.options.adminRestartPhrase);
+                process.exit();
             }
         }
-        reqHandling.enqueueRequest(msg.guild.id, commands.processMessage, msg)
+        reqHandling.enqueueRequest(msg.guild.id, commands.processMessage, msg);
     }
-})
+});
 
 bot.on('guildCreate', guild => {
-    if (guild === undefined) return
-    log.info('Added to server!', guild.name, true)
+    if (guild === undefined) return;
+    log.info('Added to server!', guild.name, true);
     try {
-        let channelId
-        let channels = guild.channels.cache
+        let channelId;
+        let channels = guild.channels.cache;
 
         channelLoop:
         for (let key in channels) {
-            let c = channels[key]
+            let c = channels[key];
             if (c[1].type === 'text') {
-                channelId = c[0]
-                break channelLoop
+                channelId = c[0];
+                break channelLoop;
             }
         }
 
-        guild.channels.cache.get(guild.systemChannelId || channelId).send('Hi- Use /help to get more information on how to use this bot!')
+        guild.channels.cache.get(guild.systemChannelId || channelId).send('Hi- Use /help to get more information on how to use this bot!');
     } catch (err) {
-        log.error('Could not send welcome message', 'guildCreate', err)
+        log.error('Could not send welcome message', 'guildCreate', err);
     }
-})
+});
 
-bot.on('guildDelete', guild => {
-    log.info('Removed from server.', guild?.name || '(unknown)', true)
-})
+bot.on('guildDelete', (guild) => {
+    let name;
+    if (!guild || typeof guild.name !== 'string') {
+        name = '(unknown)';
+    } else {
+        name = guild.name;
+    }
+    log.info('Removed from server.', name, true); // eslint-disable-line
+});
 
-bot.on('interactionCreate', interaction => {
+bot.on('interactionCreate', (interaction) => {
     if (interaction.member === null) {
-        interaction.reply('Interactions/Commands are only available within servers.')
+        interaction.reply('Interactions/Commands are only available within servers.');
     }
     else if ( interaction.isButton() ) {
-        commands.handleButtonPress(interaction)
+        commands.handleButtonPress(interaction);
     }
     else if ( interaction.isChatInputCommand() ) {
-        commands.handleSlashCommand(interaction)
+        commands.handleSlashCommand(interaction);
     }
     else if ( interaction.isStringSelectMenu() ) {
-        commands.handleStringSelect(interaction)
+        commands.handleStringSelect(interaction);
     }
     else {
-        log.warn(`Unknown interaction created by ${interaction.member.id}`, interaction.guild.id, true)
+        log.warn(`Unknown interaction created by ${interaction.member.id}`, interaction.guild.id, true);
     }
-})
+});
 
-bot.on('error', log.error)
+bot.on('error', log.error);
 
-module.exports = { client: bot }
+module.exports = { client: bot };

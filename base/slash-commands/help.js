@@ -4,13 +4,13 @@
  * Author: Adam Seidman
  */
 
-const log = require('../log')
-const Discord = require('discord.js')
-const config = require('../../client/config')
-const { hideOption, getHideResult } = require('../helpers')
+const log = require('../log');
+const Discord = require('discord.js');
+const config = require('../../client/config');
+const { hideOption, getHideResult } = require('../helpers');
 
-var commandCategoryMenu = undefined
-var mainCategoryMenu = undefined
+var commandCategoryMenu = undefined;
+var mainCategoryMenu = undefined;
 
 const mainItems = [
     {
@@ -65,8 +65,6 @@ const mainItems = [
 \`/leaderboard global-users ([hide])\`: Show the global leaderboard for all user scores.
 \`/leaderboard global-servers ([hide])\`: Show the global leaderboard for longest server chains.
 \`/leaderboard server ([hide])\`: Show the leaderboard for users within this server, by points.
-\`/playlist [round]\`: Create a playlist of one of your favorite rounds. Requires at least ${config.options.minPlaylistTracks} contributions.
-The playlist title will include the name of your server and the cover art will be your server picture.
 \`/set artist-required [required]\`: Set whether or not artist is required in guess. Command only available to admins.
 \`/set challenge-first [allowed]\`: Set whether or not you can challenge the first provided song in a chain. Command only available to admins.
 \`/set challenges-allowed [allowed]\`: Set whether or not challenges are allowed on this server. Can soft-lock without this enabled. Command only available to admins.
@@ -79,12 +77,12 @@ The playlist title will include the name of your server and the cover art will b
 \`/stats server ([hide])\`: Get server statistics.
 \`/stats user [user]([hide])\`: Get statistics about a user. Leaving the user blank gets your own statistics.
 \`/uptime\`: Get amount of time the bot has been online this session.`
-    }
-]
+    },
+];
 
 const setupDropdowns = () => {
-    if (commandCategoryMenu !== undefined && mainCategoryMenu !== undefined) return
-    let fields = []
+    if (commandCategoryMenu !== undefined && mainCategoryMenu !== undefined) return;
+    let fields = [];
 
     mainItems.forEach(x => {
         fields.push(
@@ -92,45 +90,45 @@ const setupDropdowns = () => {
                 .setLabel(x.name)
                 .setDescription(x.description)
                 .setValue(x.name)
-        )
-    })
+        );
+    });
     mainCategoryMenu = new Discord.StringSelectMenuBuilder()
         .setCustomId('help_main')
         .setPlaceholder('Pick a category')
-        .addOptions(...fields)
-}
+        .addOptions(...fields);
+};
 
-const showHelp = async interaction => {
-    setupDropdowns()
+const showHelp = async (interaction) => {
+    setupDropdowns();
     interaction.reply({
         components: [new Discord.ActionRowBuilder().addComponents(mainCategoryMenu)],
-        ephemeral: getHideResult(interaction)
-    })
-}
+        ephemeral: getHideResult(interaction),
+    });
+};
 
-const handleMainChange = interaction => {
-    let helpItem = mainItems.find(x => x.name === interaction.values[0])
+const handleMainChange = (interaction) => {
+    let helpItem = mainItems.find(x => x.name === interaction.values[0]);
     let embed = new Discord.EmbedBuilder()
         .setColor(config.options.embedColor)
         .setTitle(helpItem.title)
-        .setDescription(helpItem.info)
-    interaction.update({ embeds: [embed] })
-}
+        .setDescription(helpItem.info);
+    interaction.update({ embeds: [embed] });
+};
 
 const subcommands = {
-    main: handleMainChange
-}
+    main: handleMainChange,
+};
 
 const handleDropdownUpdate = (interaction, parts) => {
-    let sub = subcommands[parts[0]]
+    let sub = subcommands[parts[0]];
     if (sub === undefined) {
-        interaction.reply({content: 'Could not complete request!', ephemeral: true})
-        log.error('Could not complete help subcommand change', sub, null, true)
+        interaction.reply({content: 'Could not complete request!', ephemeral: true});
+        log.error('Could not complete help subcommand change', sub, null, true);
     }
     else {
-        sub(interaction)
+        sub(interaction);
     }
-}
+};
 
 module.exports = {
     phrase: 'help',
@@ -140,5 +138,5 @@ module.exports = {
         .addStringOption(hideOption),
     execute: showHelp,
     immediate: true,
-    dropdownHook: handleDropdownUpdate
-}
+    dropdownHook: handleDropdownUpdate,
+};

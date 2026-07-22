@@ -4,39 +4,39 @@
  * Author: Adam Seidman
  */
 
-const db = require('../db')
-const log = require('../log')
-const games = require('../game')
-const Discord = require('discord.js')
-const { hideOption, getHideResult, strip } = require('../helpers')
+const db = require('../db');
+const log = require('../log');
+const games = require('../game');
+const Discord = require('discord.js');
+const { hideOption, getHideResult, strip } = require('../helpers');
 
 const getNextWord = (interaction, hide) => {
-    let game = games.getGame(interaction.guild.id)
+    let game = games.getGame(interaction.guild.id);
     if (game) {
-        let words = game.currentTrack.name.trim().split(' ')
+        let words = game.currentTrack.name.trim().split(' ');
         interaction.reply({content: `The next word is \`${
             strip(words.slice(-1)[0].toLowerCase())
-        }\`.`, ephemeral: hide})
+        }\`.`, ephemeral: hide});
     }
     else {
-        interaction.reply({content: 'There is no game running!', ephemeral: true})
+        interaction.reply({content: 'There is no game running!', ephemeral: true});
     }
-}
+};
 
 const getCurrentRound = async (interaction, hide) => {
     if (games.getGame(interaction.guild.id)) {
-        let guesses = await db.getGuildPreviousGames(interaction.guild.id)
+        let guesses = await db.getGuildPreviousGames(interaction.guild.id);
         interaction.reply({content: `This is round #${
             Discord.underline(Discord.bold(guesses.length + 1))
-        }.`, ephemeral: hide})
+        }.`, ephemeral: hide});
     }
     else {
-        interaction.reply({content: 'No game has been started!', ephemeral: true})
+        interaction.reply({content: 'No game has been started!', ephemeral: true});
     }
-}
+};
 
 const showRules = async (interaction, hide) => {
-    let rules = await db.getServerRules(interaction.guild.id)
+    let rules = await db.getServerRules(interaction.guild.id);
     if (rules) {
         interaction.reply({content: `${Discord.bold('Server Rules')}:\n  Prefix: \`${
             rules.prefix
@@ -50,19 +50,19 @@ const showRules = async (interaction, hide) => {
             rules['challenge-first']
         }\`\n  Artist Required in Guess:  \`${
             rules['artist-required']
-        }\``, ephemeral: hide})
+        }\``, ephemeral: hide});
     }
     else {
-        log.warn('Could not get server rules!', interaction.guild.id)
-        interaction.reply({content: 'Error. Could not find server rules!', ephemeral: true})
+        log.warn('Could not get server rules!', interaction.guild.id);
+        interaction.reply({content: 'Error. Could not find server rules!', ephemeral: true});
     }
-}
+};
 
 const subCommands = {
     'next-word': getNextWord,
     'round-number': getCurrentRound,
-    rules: showRules
-}
+    rules: showRules,
+};
 
 module.exports = {
     phrase: 'info',
@@ -88,12 +88,12 @@ module.exports = {
                 .addStringOption(hideOption)
         ),
     execute: async interaction => {
-        let sub = interaction.options.getSubcommand()
+        let sub = interaction.options.getSubcommand();
         if ( typeof sub !== 'string' || subCommands[sub] === undefined ) {
-            log.warn('Got unknown sub-command!')
-            interaction.reply({ content: 'Could not find info sub-command!', ephemeral: true })
+            log.warn('Got unknown sub-command!');
+            interaction.reply({ content: 'Could not find info sub-command!', ephemeral: true });
         }
-        subCommands[sub](interaction, getHideResult(interaction))
+        subCommands[sub](interaction, getHideResult(interaction));
     },
-    immediate: true
-}
+    immediate: true,
+};

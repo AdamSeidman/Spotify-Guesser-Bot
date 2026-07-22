@@ -13,4 +13,4 @@ module.exports = {
         indent: ['warn', 4],
         'no-unused-vars': 'warn'
     }
-}
+};
